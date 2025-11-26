@@ -47,7 +47,7 @@ export default function EventSection({ pageSize, seeAll }: EventSectionProps) {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         viewport={{ once: true }}
-        className="text-2xl md:text-4xl font-extrabold text-gray-900 mb-12"
+        className="text-2xl md:text-4xl font-bold text-gray-900 mb-12"
       >
         {t("Events and Training")}
       </motion.h2>

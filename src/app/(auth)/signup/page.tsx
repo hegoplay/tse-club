@@ -90,9 +90,6 @@ function SignUp() {
                 </p>
                 <p> Version: 1.0.0 </p>
               </div>
-              <p className="mb-2">
-                Address: H3.2, 12 Nguyễn Văn Bảo, Gò Vấp, TP.HCM
-              </p>
               <p className="mb-2">E-MAIL: tseclub@iuh.edu.vn</p>
             </div>
           </div>

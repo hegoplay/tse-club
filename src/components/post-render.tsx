@@ -114,7 +114,7 @@ const PostRender = ({
             <p className="px-2 py-1.5 rounded-lg bg-[#0B3D91] uppercase text-white font-semibold text-sm leading-4">
               {tag}
             </p>
-            <h1 className="text-[#242F3E] font-bold text-5xl leading-[56px]">
+            <h1 className="text-[#242F3E] font-bold text-2xl md:text-5xl leading-10 md:leading-[56px]">
               {titleBlog}
             </h1>
             <div
@@ -126,14 +126,16 @@ const PostRender = ({
                 <p className="uppercase text-[#999999] font-normal text-sm">
                   WRITTEN BY
                 </p>
-                <p className="text-[#242F3E] font-normal text-base">Manager</p>
+                <p className="text-[#242F3E] font-normal text-base">
+                  {pageData?.writer?.fullName}
+                </p>
               </div>
               <div className="flex flex-col gap-1 items-start">
                 <p className="uppercase text-[#999999] font-normal text-sm">
                   PUBLISH ON
                 </p>
                 <p className="text-[#242F3E] font-normal text-base">
-                  {dayjs(updatedAtBlog).format("MMM D, YYYY")}
+                  {dayjs(pageData?.lastModifiedTime).format("MMM D, YYYY")}
                 </p>
               </div>
             </div>
@@ -154,7 +156,7 @@ const PostRender = ({
               )}
             </div>
 
-            <div className="w-full sm:hidden block min-h-[82px]">
+            {/* <div className="w-full sm:hidden block min-h-[82px]">
               <div
                 className={`sm:hidden block w-full ${
                   isTOCFixed
@@ -184,11 +186,11 @@ const PostRender = ({
                   )}
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex flex-col gap-16 sm:max-w-[888px]">
               <img
-                src={imageUrl}
+                src={pageData?.featureImageUrl}
                 alt=""
                 className="w-full sm:h-[499px] h-[228px] sm:rounded-2xl object-cover"
               />

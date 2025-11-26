@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import EventSection from "@/components/EventSection";
+import TrainingSection from "@/components/TrainingSection";
 
 export default function EventPage() {
   const { t } = useTranslation("common");
@@ -21,7 +22,7 @@ export default function EventPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-3xl md:text-5xl font-extrabold leading-tight"
+            className="text-3xl md:text-5xl font-bold leading-tight"
           >
             {t("Explore Our Latest Events & Trainings")}
           </motion.h1>
@@ -46,6 +47,7 @@ export default function EventPage() {
       </motion.div>
 
       <EventSection pageSize={9} />
+      <TrainingSection pageSize={9} />
     </div>
   );
 }

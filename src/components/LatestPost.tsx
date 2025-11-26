@@ -33,7 +33,7 @@ export default function LatestPost() {
 
   return (
     <section className="w-full px-4 py-8 text-center">
-      <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-10">
+      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10">
         The latest news and stories
       </h2>
 
@@ -63,7 +63,7 @@ export default function LatestPost() {
 
               {/* Nội dung */}
               <div className="flex flex-col text-left p-6 flex-grow">
-                <h3 className="text-lg font-extrabold text-gray-900 mb-3 leading-snug">
+                <h3 className="text-lg font-bold text-gray-900 mb-3 leading-snug">
                   {post.title}
                 </h3>
                 <p className="text-sm text-gray-800 mb-6">

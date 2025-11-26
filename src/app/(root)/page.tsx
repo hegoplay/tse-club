@@ -23,7 +23,7 @@ export default function HomePage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             viewport={{ once: true }}
           >
-            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-extrabold text-black mb-3 sm:mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-black mb-3 sm:mb-4">
               {t("We are TSE Club")}
             </h2>
             <p className="text-base sm:text-lg text-black/80 mb-5 sm:mb-6">
@@ -110,7 +110,7 @@ export default function HomePage() {
 
       {/* JOIN COMMUNITY SECTION */}
       <div className="flex flex-col items-center text-center mt-16 sm:mt-20 mb-10">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 mb-3 sm:mb-4">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
           {t("Join the TSE Club community")}
         </h2>
         <p className="text-gray-700 max-w-2xl sm:max-w-3xl mx-auto mb-10 sm:mb-12 text-sm sm:text-base">
@@ -170,7 +170,7 @@ export default function HomePage() {
             >
               <div className="relative mb-5 sm:mb-6">
                 <span
-                  className="text-5xl sm:text-6xl font-extrabold"
+                  className="text-5xl sm:text-6xl font-bold"
                   style={{ color: card.color }}
                 >
                   {"{"}
@@ -179,13 +179,13 @@ export default function HomePage() {
                   {card.icon}
                 </div>
                 <span
-                  className="text-5xl sm:text-6xl font-extrabold"
+                  className="text-5xl sm:text-6xl font-bold"
                   style={{ color: card.color }}
                 >
                   {"}"}
                 </span>
               </div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-2">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
                 {t(card.title)}
               </h3>
               <p className="text-gray-700 mb-6 max-w-xs text-sm sm:text-base">
@@ -214,7 +214,7 @@ export default function HomePage() {
         className="bg-[#FFF7AD] rounded-3xl p-6 sm:p-8 md:p-12 my-8 flex flex-col md:flex-row items-center gap-8 md:gap-10 text-center md:text-left"
       >
         <div className="md:w-1/2 space-y-3 sm:space-y-4">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 leading-snug">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-snug">
             {t("TSE Club is a club affiliated with IUH")}
           </h2>
           <p className="text-gray-800 text-sm sm:text-base leading-relaxed">

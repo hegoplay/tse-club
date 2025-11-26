@@ -48,7 +48,7 @@ export default function BlogPage() {
         className="bg-gradient-to-r from-green-500 via-teal-500 to-emerald-500 text-white py-12 px-4 mx-4 md:mx-6 rounded-3xl text-center relative overflow-hidden"
       >
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-3xl md:text-5xl font-extrabold">
+          <h1 className="text-3xl md:text-5xl font-bold">
             {t("Welcome to the Code Club Blog")}
           </h1>
           <p className="text-base md:text-lg mt-3 opacity-90">
@@ -95,7 +95,7 @@ export default function BlogPage() {
                     })}
                   </p>
 
-                  <h2 className="font-extrabold text-lg md:text-xl text-gray-900 mb-2">
+                  <h2 className="font-bold text-lg md:text-xl text-gray-900 mb-2">
                     {post.title}
                   </h2>
 
@@ -142,9 +142,8 @@ export default function BlogPage() {
             </div>
           </div>
 
-          {/* 🏷 Categories */}
           <div className="bg-white rounded-3xl p-6 shadow-sm">
-            <h3 className="font-extrabold text-lg md:text-xl mb-4">
+            <h3 className="font-bold text-lg md:text-xl mb-4">
               {t("Categories")}
             </h3>
             <ul className="space-y-2 text-gray-800 font-medium text-sm md:text-base">

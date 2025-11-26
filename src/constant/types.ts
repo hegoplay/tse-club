@@ -427,7 +427,7 @@ export interface PostResponse {
 }
 
 export interface Post {
-  id?: number;
+  id?: string;
   title?: string;
   slug?: string;
   content?: string;
@@ -439,6 +439,48 @@ export interface Post {
   image?: string;
   excerpt?: string;
   postTime?: string;
+  writer?: Member;
+  featureImageUrl?: string;
+  comments?: Comment[];
+  lastModifiedTime?: string;
+  event?: Event;
+}
+
+export interface Comment {
+  id?: string;
+  content: string;
+  commenter?: User;
+  commentTime?: string;
+}
+
+export interface CategoryOption {
+  id: string;
+  label: string | undefined;
+  value: string;
+  disabled: boolean;
+}
+
+export interface ModalCheckoutSuccessProps {
+  date: string;
+  numberOfItem: number;
+  address: string;
+  name: string;
+  total: number;
+}
+
+export interface Location {
+  destination: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface Organizer {
+  organizerId: string;
+  roleContent: string;
+  username?: string;
+  email?: string;
+  roles: string[];
+  fullName?: string;
 }
 
 export interface CategoryOption {
@@ -457,16 +499,22 @@ export interface ModalCheckoutSuccessProps {
 }
 
 export interface Event {
-  id: string;
+  id?: string;
   title: string;
-  content: string;
   location: Location;
-  multiple: number;
-  status: string;
-  organizers: Organizer[];
-  trainingId: string;
-  category: string;
+  multiple?: number;
+  status?: string;
+  organizers?: Organizer[];
+  trainingId?: string;
+  category?: string;
   description?: string;
+  host?: Member;
+  limitRegister?: number;
+  plans?: string;
+  isPublic?: boolean;
+  allowedType?: number;
+  allowedArray?: number[];
+  currentRegistered?: number;
 }
 export interface Location {
   destination: string;
@@ -481,4 +529,26 @@ export interface Organizer {
   email?: string;
   roles: string[];
   fullName?: string;
+}
+
+export interface Training {
+  title: string;
+  trainingEvents: Event[];
+  location: Location;
+  status: string;
+  description?: string;
+  creator?: Member;
+  mentor?: Member[];
+  mentorIds?: string[];
+  limitRegister?: number;
+  featuredImageName?: string;
+}
+
+export interface Member {
+  id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  nickname?: string | null;
+  userUrl?: string;
 }

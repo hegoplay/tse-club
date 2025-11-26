@@ -49,7 +49,6 @@ function SignIn() {
           body: JSON.stringify({ username: email, password }),
         }
       );
-
       if (!response.ok) throw new Error("Invalid credentials");
       const data = await response.json();
 
@@ -69,7 +68,6 @@ function SignIn() {
     }
   };
 
-  // 🔐 Nếu user đã đăng nhập → chuyển hướng về trang chủ
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (typeof window !== "undefined") {
@@ -99,16 +97,13 @@ function SignIn() {
                 </p>
                 <p>Version: 1.0.0</p>
               </div>
-              <p className="mb-2">
-                Address: H3.2, 12 Nguyễn Văn Bảo, Gò Vấp, TP.HCM
-              </p>
               <p className="mb-2">E-MAIL: tseclub@iuh.edu.vn</p>
             </div>
           </div>
 
           {/* Login box */}
           <div className="relative z-10 w-full max-w-md rounded-xl shadow-2xl p-8 mx-auto md:mr-20  backdrop-blur-sm">
-            <h2 className="text-3xl font-extrabold text-center mb-6 bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">
               {t("LOGIN")}
             </h2>
 

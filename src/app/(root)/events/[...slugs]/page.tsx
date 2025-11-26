@@ -1,7 +1,5 @@
 import { Metadata } from "next";
-import { User } from "@/constant/types";
 import { last } from "lodash";
-import PostRender from "@/components/post-render";
 import { getEventPublicById } from "@/modules/services/eventService";
 import EventRender from "@/components/event-render";
 
@@ -11,7 +9,8 @@ const Page = async (props: {
   const params = await props.params;
 
   const res = await getEventPublicById(last(params.slugs) || "");
-  console.log("res", res);
+
+  console.log("Event data:", res);
 
   return <EventRender eventData={res || undefined} />;
 };

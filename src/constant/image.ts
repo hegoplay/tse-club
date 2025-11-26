@@ -5,6 +5,7 @@ import emptyImage from "../../public/images/empty-img.jpg";
 import logoIUH2 from "../../public/images/iuh_logo-rut-gon.png";
 import iuhStudent from "../../public/images/iuh-student.webp";
 import sinhVien from "../../public/images/sinhvien.jpg";
+import javaCourse from "../../public/images/Java-Course.webp";
 
 export const Images = {
   logoIUH: logoIUH,
@@ -14,4 +15,5 @@ export const Images = {
   logoIUH2: logoIUH2,
   iuhStudent: iuhStudent,
   sinhVien: sinhVien,
+  javaCourse: javaCourse,
 };
