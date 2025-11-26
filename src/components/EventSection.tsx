@@ -7,6 +7,7 @@ import { Spin } from "antd";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import dayjs from "dayjs";
 
 interface EventSectionProps {
   pageSize?: number;
@@ -21,7 +22,10 @@ export default function EventSection({ pageSize, seeAll }: EventSectionProps) {
   useEffect(() => {
     async function fetchEvents() {
       try {
-        const data = await getPublicEvents({ size: pageSize });
+        const data = await getPublicEvents({
+          size: pageSize,
+          startTime: dayjs().toISOString(),
+        });
         setEvents(data);
       } catch (error) {
         console.error("Failed to fetch public events:", error);
@@ -71,6 +75,11 @@ export default function EventSection({ pageSize, seeAll }: EventSectionProps) {
               {event.category
                 ? `${t("Category")}: ${event.category}`
                 : t("Upcoming event")}
+            </p>
+
+            <p>
+              {t("Số lượng đăng ký: ")} {event.currentRegistered} /{" "}
+              {event.limitRegister}
             </p>
 
             <div

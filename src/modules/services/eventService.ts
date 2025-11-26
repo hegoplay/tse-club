@@ -55,6 +55,7 @@ export const getPublicEvents = (params?: {
   isDone?: boolean;
   keyword?: string;
   category?: string;
+  startTime?: string;
 }) => {
   const response = http.get(`${API_PREFIX_PUBLIC_EVENT_PATH}/search`, {
     params,

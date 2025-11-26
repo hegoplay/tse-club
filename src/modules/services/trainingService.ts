@@ -55,6 +55,7 @@ export const getPublicTraining = (params?: {
   size?: number;
   keyword?: string;
   status?: string;
+  startTime?: string;
 }) => {
   const res = http.get<any>(`${API_PREFIX_PUBLIC_TRAINING_PATH}/search`, {
     params,

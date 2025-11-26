@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { getPublicTraining } from "@/modules/services/trainingService";
 import { Images } from "@/constant/image";
+import dayjs from "dayjs";
 
 interface Training {
   id: string;
@@ -40,7 +41,10 @@ export default function TrainingSection({
   useEffect(() => {
     async function fetchTrainings() {
       try {
-        const res = await getPublicTraining({ size: pageSize });
+        const res = await getPublicTraining({
+          size: pageSize,
+          startTime: dayjs().toISOString(),
+        });
         setTrainings(res || []);
       } catch (error) {
         console.error("Failed to fetch public trainings:", error);
