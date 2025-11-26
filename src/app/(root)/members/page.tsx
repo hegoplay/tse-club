@@ -1,7 +1,6 @@
 "use client";
 
 import ListMember from "@/modules/member/ListMember";
-import ListPost from "@/modules/post/ListPost";
 import { Button, Input } from "antd";
 import { Search } from "lucide-react";
 import Link from "next/link";
