@@ -12,7 +12,7 @@ export const initializeI18n = async (locale: string = "vi") => {
 
     const options: InitOptions = {
       lng: locale,
-      fallbackLng: "en",
+      fallbackLng: "vi",
       ns: ["common"],
       defaultNS: "common",
       resources: {

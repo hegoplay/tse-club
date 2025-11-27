@@ -20,3 +20,27 @@ export const getUser = (params?: {
   });
   return response.then((res) => res._embedded.userShortInfoResponseDtoList);
 };
+
+export const getInfoUser = () => {
+  const response = http.get(`${API_PREFIX_PATH}/me`);
+  return response.then((res) => res);
+};
+
+export const updateUserInfo = (data: any) => {
+  const response = http.put(`${API_PREFIX_PATH}/update-my-info`, data);
+  return response.then((res) => res);
+};
+
+export const changePassword = (data: {
+  oldPassword: string;
+  newPassword: string;
+  confirmNewPassword: string;
+}) => {
+  const response = http.put(`${API_PREFIX_PATH}/update-my-password`, data);
+  return response.then((res) => res);
+};
+
+export const updateRequest = (type: number) => {
+  const response = http.post(`${API_PREFIX_PATH}/update-request`, { type });
+  return response.then((res) => res);
+};

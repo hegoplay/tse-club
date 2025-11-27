@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <head>
         <title>TSE Club – Learn to Code, Shape the Future</title>
       </head>

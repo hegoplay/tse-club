@@ -68,3 +68,21 @@ export const getEventPublicById = (id: string) =>
 
 export const registerForEvent = (id: string) =>
   http.post(`${API_PREFIX_EVENT_PATH}/${id}/self-trigger-register`);
+
+export const getRegisteredEvents = (params?: {
+  page?: number;
+  size?: number;
+  keyword?: string;
+  type?: string;
+  isDone?: boolean;
+  startTime?: string;
+  endTime?: string;
+  sort?: string;
+}) => {
+  const request = { request: params };
+  const response = http.get(
+    `${API_PREFIX_EVENT_PATH}/search/registered-events`,
+    { params: request }
+  );
+  return response.then((res) => res._embedded.eventWrapperDtoList);
+};

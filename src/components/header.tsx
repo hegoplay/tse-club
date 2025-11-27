@@ -30,7 +30,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const currentLang =
-    searchParams.get("lang") || localStorage.getItem("lang") || "en";
+    searchParams.get("lang") || localStorage.getItem("lang") || "vi";
 
   useEffect(() => {
     localStorage.setItem("lang", currentLang);
