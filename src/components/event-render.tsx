@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { CalendarDays, MapPin, Users, CheckCircle, Star } from "lucide-react";
 import {
-  getEventById,
   registerForEvent,
+  selfCheckIn,
+  addReview,
 } from "@/modules/services/eventService";
 import { toast } from "sonner";
 import FlipNumbers from "react-flip-numbers";
 import { useTranslation } from "react-i18next";
+import Image from "next/image";
+import Link from "next/link";
 
 interface EventRenderProps {
   eventData: any;
@@ -25,6 +28,10 @@ export default function EventRender({ eventData }: EventRenderProps) {
   });
   const [userStatus, setUserStatus] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [checkInCode, setCheckInCode] = useState("");
+  const [review, setReview] = useState("");
+  const [submittingCheckIn, setSubmittingCheckIn] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   if (!eventData) return <p className="text-gray-500">{t("NO_EVENT_DATA")}</p>;
 
@@ -39,7 +46,12 @@ export default function EventRender({ eventData }: EventRenderProps) {
     isHost,
     userAsOrganizer,
     userAttendeeStatus,
+    timeStatus,
+    userAsAttendee,
+    eventPosts,
   } = eventData;
+
+  const bgColors = ["#fef79d", "#bdf4c9", "#ffd6e8"];
 
   useEffect(() => {
     if (!location?.startTime) return;
@@ -67,7 +79,8 @@ export default function EventRender({ eventData }: EventRenderProps) {
   }, [location?.startTime]);
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
+    const user =
+      typeof window !== "undefined" ? localStorage.getItem("user") : null;
     if (!user) {
       setUserStatus("guest");
       return;
@@ -78,8 +91,16 @@ export default function EventRender({ eventData }: EventRenderProps) {
         if (isHost) setUserStatus("host");
         else if (userAsOrganizer?.roles?.includes("MODIFY"))
           setUserStatus("organizer");
-        else if (userAttendeeStatus === "REGISTERED")
+        else if (
+          userAttendeeStatus === "REGISTERED" ||
+          userAsAttendee?.status === "REGISTERED"
+        )
           setUserStatus("registered");
+        else if (
+          userAttendeeStatus === "CHECKED" ||
+          userAsAttendee?.status === "CHECKED"
+        )
+          setUserStatus("checked");
         else if (userAttendeeStatus === "PENDING") setUserStatus("pending");
         else setUserStatus("none");
       } catch (err) {
@@ -88,9 +109,8 @@ export default function EventRender({ eventData }: EventRenderProps) {
     };
 
     fetchStatus();
-  }, [id]);
+  }, [id, isHost, userAsOrganizer, userAttendeeStatus, userAsAttendee]);
 
-  // 🟢 Đăng ký tham gia
   const handleRegister = async () => {
     try {
       setLoading(true);
@@ -104,7 +124,46 @@ export default function EventRender({ eventData }: EventRenderProps) {
     }
   };
 
-  // 🕓 Format thời gian
+  const handleCheckIn = async () => {
+    if (!checkInCode.trim()) {
+      toast.error(t("PLEASE_ENTER_CODE") || "Please enter check-in code");
+      return;
+    }
+    try {
+      setSubmittingCheckIn(true);
+      await selfCheckIn(id, {
+        code: checkInCode,
+        attendeeId: userAsAttendee?.id || "",
+      });
+      toast.success(t("CHECK_IN_SUCCESS") || "Check-in successful!");
+      setUserStatus("checked");
+      setCheckInCode("");
+    } catch (err: any) {
+      toast.error(err?.message || t("CHECK_IN_FAILED") || "Check-in failed");
+    } finally {
+      setSubmittingCheckIn(false);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    if (!review.trim()) {
+      toast.error(t("PLEASE_ENTER_REVIEW") || "Please enter your review");
+      return;
+    }
+    try {
+      setSubmittingReview(true);
+      await addReview(id, review);
+      toast.success(t("REVIEW_SUCCESS") || "Review submitted successfully!");
+      setReview("");
+    } catch (err: any) {
+      toast.error(
+        err?.message || t("REVIEW_FAILED") || "Failed to submit review"
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   const startTime = new Date(location?.startTime).toLocaleString("vi-VN", {
     day: "2-digit",
     month: "2-digit",
@@ -121,7 +180,6 @@ export default function EventRender({ eventData }: EventRenderProps) {
     minute: "2-digit",
   });
 
-  // 🟡 Button hiển thị
   const renderButton = () => {
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
@@ -139,9 +197,12 @@ export default function EventRender({ eventData }: EventRenderProps) {
           </button>
         );
       case "registered":
+      case "checked":
         return (
           <button disabled className={`${common} bg-blue-600`}>
-            {t("REGISTERED")}
+            {userStatus === "checked"
+              ? t("CHECKED_IN") || "Checked In"
+              : t("REGISTERED")}
           </button>
         );
       case "pending":
@@ -172,89 +233,414 @@ export default function EventRender({ eventData }: EventRenderProps) {
     }
   };
 
+  const canCheckIn =
+    (timeStatus === "ONGOING" || timeStatus === "COMPLETED") &&
+    (userAsAttendee?.status === "REGISTERED" || userStatus === "registered");
+
+  const canReview =
+    category === "SEMINAR" &&
+    timeStatus === "COMPLETED" &&
+    (userAsAttendee?.status === "CHECKED" || userStatus === "checked");
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      viewport={{ once: true }}
-      className="bg-white rounded-3xl shadow-lg p-4 md:p-8 overflow-hidden flex flex-col md:flex-row hover:shadow-2xl transition-all duration-300"
-    >
-      <div className="md:w-1/7 bg-gradient-to-tr from-blue-500 to-purple-500 text-white flex flex-col justify-center md:justify-start items-center p-6 md:pt-15 rounded-2xl md:mr-8 mb-6 md:mb-0">
-        <CalendarDays className="w-10 h-10 mb-3" />
-        <p className="text-lg font-semibold">{category || "Event"}</p>
-        <p
-          className={`mt-2 inline-block px-3 py-1 rounded-full text-sm ${
-            done ? "bg-green-500" : "bg-yellow-500"
-          }`}
-        >
-          {done ? t("FINISHED") : t("UPCOMING")}
-        </p>
+    <div className="min-h-[700px] flex flex-col">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        viewport={{ once: true }}
+        className="bg-gradient-to-br from-white via-blue-50 to-purple-50 rounded-3xl shadow-xl p-6 md:p-10 overflow-hidden flex flex-col md:flex-row hover:shadow-2xl transition-all duration-300 mb-8 border border-gray-100"
+      >
+        {/* Left Card - Enhanced */}
+        <div className="md:w-1/3 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white flex flex-col justify-between items-center p-8 rounded-3xl md:mr-8 mb-6 md:mb-0 shadow-2xl relative overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full -ml-12 -mb-12"></div>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm mb-1">{t("STARTS IN")}</p>
-          <p className="text-lg font-bold">
-            {countdown.days} {t("DAYS")}
-          </p>
-          <div className="flex justify-center gap-2 mt-2">
-            <FlipNumbers
-              height={15}
-              width={13}
-              color="white"
-              background="transparent"
-              play
-              perspective={100}
-              numbers={`${String(countdown.hours).padStart(2, "0")}:${String(
-                countdown.minutes
-              ).padStart(2, "0")}:${String(countdown.seconds).padStart(
-                2,
-                "0"
-              )}`}
+          <div className="relative z-10 flex flex-col items-center w-full">
+            <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm mb-4">
+              <CalendarDays className="w-12 h-12" />
+            </div>
+            <p className="text-2xl font-bold mb-2">{category || "Event"}</p>
+            <p
+              className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${
+                done ? "bg-green-500" : "bg-yellow-400 text-gray-900"
+              }`}
+            >
+              {done ? t("FINISHED") : t("UPCOMING")}
+            </p>
+
+            <div className="mt-8 text-center w-full bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+              <p className="text-sm opacity-80 mb-2">{t("STARTS IN")}</p>
+              <p className="text-3xl font-bold mb-4">
+                {countdown.days} <span className="text-lg">{t("DAYS")}</span>
+              </p>
+              <div className="flex justify-center gap-1">
+                <FlipNumbers
+                  height={15}
+                  width={12}
+                  color="white"
+                  background="rgba(255,255,255,0.1)"
+                  play
+                  perspective={100}
+                  numbers={`${String(countdown.hours).padStart(
+                    2,
+                    "0"
+                  )}:${String(countdown.minutes).padStart(2, "0")}:${String(
+                    countdown.seconds
+                  ).padStart(2, "0")}`}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Stats at bottom */}
+          <div className="mt-6 grid grid-cols-2 gap-4 w-full">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+              <Users className="w-5 h-5 mx-auto mb-1" />
+              <p className="text-xs opacity-80">
+                {t("REGISTERED") || "Registered"}
+              </p>
+              <p className="text-lg font-bold">
+                {eventData.currentRegistered || 0}
+              </p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
+              <CalendarDays className="w-5 h-5 mx-auto mb-1" />
+              <p className="text-xs opacity-80">{t("LIMIT") || "Limit"}</p>
+              <p className="text-lg font-bold">
+                {eventData.limitRegister || "∞"}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Content - Enhanced */}
+        <div className="md:w-2/3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between mb-6">
+              <h2 className="text-4xl font-bold text-gray-900 leading-tight flex-1">
+                {title}
+              </h2>
+              {eventData.isPublic && (
+                <span className="ml-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold whitespace-nowrap">
+                  {t("PUBLIC") || "Public"}
+                </span>
+              )}
+            </div>
+
+            {/* Description with better styling */}
+            <div
+              dangerouslySetInnerHTML={{ __html: description || "" }}
+              className="text-base text-gray-700 mb-8 leading-relaxed bg-white/60 p-6 rounded-2xl backdrop-blur-sm border border-gray-100"
             />
+
+            {/* Event Details - Better Layout */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-3 rounded-lg">
+                    <CalendarDays className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {t("START")}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {startTime}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="bg-purple-100 p-3 rounded-lg">
+                    <CalendarDays className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {t("END")}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {endTime}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="bg-green-100 p-3 rounded-lg">
+                    <MapPin className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 font-medium">
+                      {t("LOCATION")}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {location?.destination}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="bg-orange-100 p-3 rounded-lg">
+                    <Users className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {t("HOST")}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {host?.fullName}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            {eventData.plans && (
+              <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-5 rounded-xl border border-amber-200 mb-4">
+                <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
+                  {t("EVENT_PLAN") || "Event Plan"}
+                </h4>
+                <p className="text-sm text-gray-700">{eventData.plans}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Action Button */}
+          <div className="mt-6 flex justify-center md:justify-start">
+            {renderButton()}
           </div>
         </div>
+      </motion.div>
+
+      {/* Interactive Sections Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Check-in Section */}
+        {canCheckIn && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 rounded-3xl shadow-lg p-8 border border-green-100 hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <div className="bg-green-500 p-3 rounded-xl shadow-md">
+                <CheckCircle className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t("CHECK_IN") || "Check-in"}
+                </h3>
+                <p className="text-sm text-green-700">
+                  {t("CONFIRM_ATTENDANCE") || "Confirm your attendance"}
+                </p>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-5 text-sm leading-relaxed">
+              {t("ENTER_CODE_TO_CHECK_IN") ||
+                "Enter your check-in code to confirm attendance"}
+            </p>
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                value={checkInCode}
+                onChange={(e) => setCheckInCode(e.target.value)}
+                placeholder={t("ENTER_CODE") || "Enter code (e.g., 999999)"}
+                className="w-full px-5 py-4 border-2 border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg font-mono bg-white"
+              />
+              <button
+                onClick={handleCheckIn}
+                disabled={submittingCheckIn}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+              >
+                {submittingCheckIn ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    {t("CHECKING_IN") || "Checking..."}
+                  </span>
+                ) : (
+                  t("CHECK_IN") || "Check-in Now"
+                )}
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Review Section */}
+        {canReview && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 rounded-3xl shadow-lg p-8 border border-amber-100 hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <div className="bg-amber-500 p-3 rounded-xl shadow-md">
+                <Star className="w-7 h-7 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t("REVIEW_EVENT") || "Review Event"}
+                </h3>
+                <p className="text-sm text-amber-700">
+                  {t("SHARE_EXPERIENCE") || "Share your experience"}
+                </p>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-5 text-sm leading-relaxed">
+              {t("SHARE_YOUR_THOUGHTS") ||
+                "Share your thoughts about this seminar"}
+            </p>
+            <div className="flex flex-col gap-3">
+              <textarea
+                value={review}
+                onChange={(e) => setReview(e.target.value)}
+                placeholder={t("WRITE_REVIEW") || "Write your review..."}
+                className="w-full px-5 py-4 border-2 border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent min-h-[140px] resize-none bg-white"
+              />
+              <button
+                onClick={handleSubmitReview}
+                disabled={submittingReview}
+                className="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+              >
+                {submittingReview ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    {t("SUBMITTING") || "Submitting..."}
+                  </span>
+                ) : (
+                  t("SUBMIT_REVIEW") || "Submit Review"
+                )}
+              </button>
+            </div>
+          </motion.div>
+        )}
       </div>
 
-      <div className="md:w-2/3 p-4 flex flex-col justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-          <div
-            dangerouslySetInnerHTML={{ __html: description || "" }}
-            className="text-md text-gray-700 my-6"
-          />
-
-          <div className="space-y-2 text-gray-600 text-md">
-            <p className="flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-blue-600" />
-              <span>
-                <strong>{t("START")}:</strong> {startTime}
-              </span>
-            </p>
-            <p className="flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-blue-600" />
-              <span>
-                <strong>{t("END")}:</strong> {endTime}
-              </span>
-            </p>
-            <p className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-blue-600" />
-              <span>
-                <strong>{t("LOCATION")}:</strong> {location?.destination}
-              </span>
-            </p>
-            <p className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-blue-600" />
-              <span>
-                <strong>{t("HOST")}:</strong> {host?.fullName}
-              </span>
+      {/* Event Posts Section */}
+      {eventPosts && eventPosts.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="text-center mb-10">
+            <h3 className="text-4xl font-bold text-gray-900 mb-3">
+              {t("EVENT_POSTS") || "Event News & Updates"}
+            </h3>
+            <p className="text-gray-600">
+              {t("LATEST_NEWS") ||
+                "Stay updated with the latest news and announcements"}
             </p>
           </div>
-        </div>
-
-        <div className="mt-6 flex justify-center md:justify-start">
-          {renderButton()}
-        </div>
-      </div>
-    </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {eventPosts.slice(0, 3).map((post: any, i: number) => (
+              <motion.div
+                key={post.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true }}
+                className="rounded-3xl overflow-hidden flex flex-col shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl group"
+                style={{ backgroundColor: bgColors[i % bgColors.length] }}
+              >
+                {post.featureImageUrl && (
+                  <div className="w-full h-56 relative overflow-hidden">
+                    <Image
+                      src={post.featureImageUrl}
+                      alt={post.title || ""}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                )}
+                <div className="flex flex-col text-left p-7 flex-grow">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <p className="text-sm text-gray-700 font-medium">
+                      {new Date(
+                        post.postTime || post.createdAt
+                      ).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-4 leading-snug line-clamp-2 group-hover:text-blue-600 transition-colors">
+                    {post.title}
+                  </h4>
+                  <div
+                    className="text-sm text-gray-700 mb-6 line-clamp-3 leading-relaxed"
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        post.content
+                          ?.replace(/<[^>]*>/g, "")
+                          .substring(0, 120) + "..." || "",
+                    }}
+                  />
+                  <Link
+                    href={`/posts/${post.id}`}
+                    className="mt-auto bg-gray-900 text-white rounded-full px-6 py-3 font-semibold self-start hover:bg-gray-800 transition-all text-sm shadow-md hover:shadow-lg transform hover:scale-105 inline-flex items-center gap-2 group"
+                  >
+                    {t("READ_MORE") || "Read more"}
+                    <svg
+                      className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </Link>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </div>
   );
 }
