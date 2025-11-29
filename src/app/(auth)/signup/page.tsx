@@ -95,7 +95,7 @@ function SignUp() {
           </div>
 
           {/* Sign up box */}
-          <div className="relative z-10 w-full max-w-md rounded-xl shadow-2xl p-8 mx-auto  backdrop-blur">
+          <div className="relative z-10 w-full bg-white max-w-md rounded-xl shadow-2xl p-8 mx-auto  backdrop-blur">
             {/* Language switcher */}
             <div className="flex justify-end mb-4 space-x-4">
               <label className="flex items-center gap-2 cursor-pointer">

@@ -32,10 +32,10 @@ export class HttpClient {
   private async wrap<T>(promise: Promise<any>): Promise<T | null> {
     try {
       const res = await promise;
-      return res?.data ?? null;
+      return res?.data ?? res;
     } catch (err: any) {
       console.log("HTTP Error:", err);
-      return null;
+      return err.response?.data ?? err;
     }
   }
 
