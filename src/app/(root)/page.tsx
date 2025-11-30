@@ -245,7 +245,7 @@ export default function HomePage() {
         </div>
       </motion.section>
 
-      <EventSection pageSize={3} seeAll={true} />
+      <EventSection pageSize={3} seeAll={true} title={t("Upcoming events")} rangeTimeType="UPCOMING" />
     </section>
   );
 }
