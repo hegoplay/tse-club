@@ -102,7 +102,7 @@ function SignIn() {
           </div>
 
           {/* Login box */}
-          <div className="relative z-10 w-full max-w-md rounded-xl shadow-2xl p-8 mx-auto md:mr-20  backdrop-blur-sm">
+          <div className="relative z-10 w-full max-w-md rounded-xl bg-white shadow-2xl p-8 mx-auto md:mr-20  backdrop-blur-sm">
             <h2 className="text-3xl font-bold text-center mb-6 bg-gradient-to-r from-indigo-700 to-purple-600 bg-clip-text text-transparent">
               {t("LOGIN")}
             </h2>

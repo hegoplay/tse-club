@@ -1,10 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { CalendarDays, MapPin, Users, CheckCircle, Star } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  CalendarDays,
+  MapPin,
+  Users,
+  CheckCircle,
+  Star,
+  X,
+} from "lucide-react";
 import {
   registerForEvent,
+  registerForEventWithoutLogin,
   selfCheckIn,
   addReview,
 } from "@/modules/services/eventService";
@@ -32,6 +40,14 @@ export default function EventRender({ eventData }: EventRenderProps) {
   const [review, setReview] = useState("");
   const [submittingCheckIn, setSubmittingCheckIn] = useState(false);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [showGuestModal, setShowGuestModal] = useState(false);
+  const [currentRegistered, setCurrentRegistered] = useState(0);
+  const [guestFormData, setGuestFormData] = useState({
+    fullName: "",
+    email: "",
+    dateOfBirth: "",
+    nickname: "",
+  });
 
   if (!eventData) return <p className="text-gray-500">{t("NO_EVENT_DATA")}</p>;
 
@@ -49,9 +65,16 @@ export default function EventRender({ eventData }: EventRenderProps) {
     timeStatus,
     userAsAttendee,
     eventPosts,
+    isPublic,
+    limitRegister,
+    registrationDeadline,
   } = eventData;
 
   const bgColors = ["#fef79d", "#bdf4c9", "#ffd6e8"];
+
+  useEffect(() => {
+    setCurrentRegistered(eventData.currentRegistered || 0);
+  }, [eventData.currentRegistered]);
 
   useEffect(() => {
     if (!location?.startTime) return;
@@ -101,7 +124,6 @@ export default function EventRender({ eventData }: EventRenderProps) {
           userAsAttendee?.status === "CHECKED"
         )
           setUserStatus("checked");
-        else if (userAttendeeStatus === "PENDING") setUserStatus("pending");
         else setUserStatus("none");
       } catch (err) {
         console.error("Error checking user event status:", err);
@@ -111,14 +133,56 @@ export default function EventRender({ eventData }: EventRenderProps) {
     fetchStatus();
   }, [id, isHost, userAsOrganizer, userAttendeeStatus, userAsAttendee]);
 
+  const isRegistrationClosed = () => {
+    if (registrationDeadline) {
+      const deadline = new Date(registrationDeadline).getTime();
+      return Date.now() > deadline;
+    }
+    return false;
+  };
+
+  const isRegistrationFull = () => {
+    return limitRegister && currentRegistered >= limitRegister;
+  };
+
   const handleRegister = async () => {
     try {
       setLoading(true);
       await registerForEvent(id);
-      toast.success(t("REGISTER_SUCCESS"));
-      setUserStatus("pending");
+      toast.success(t("Registration successful"));
+      setUserStatus("registered");
+      setCurrentRegistered((prev) => prev + 1);
     } catch {
-      toast.error(t("REGISTER_FAILED"));
+      toast.error(t("Registration failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGuestRegister = async () => {
+    const { fullName, email, dateOfBirth, nickname } = guestFormData;
+
+    if (!fullName || !email || !dateOfBirth || !nickname) {
+      toast.error(t("Please fill all required fields"));
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await registerForEventWithoutLogin(id, guestFormData);
+      toast.success(
+        t("Registration successful! Please check your email for confirmation.")
+      );
+      setShowGuestModal(false);
+      setCurrentRegistered((prev) => prev + 1);
+      setGuestFormData({
+        fullName: "",
+        email: "",
+        dateOfBirth: "",
+        nickname: "",
+      });
+    } catch (err: any) {
+      toast.error(err?.message || t("Registration failed"));
     } finally {
       setLoading(false);
     }
@@ -126,20 +190,31 @@ export default function EventRender({ eventData }: EventRenderProps) {
 
   const handleCheckIn = async () => {
     if (!checkInCode.trim()) {
-      toast.error(t("PLEASE_ENTER_CODE") || "Please enter check-in code");
+      toast.error(t("Please enter check-in code"));
       return;
     }
     try {
       setSubmittingCheckIn(true);
-      await selfCheckIn(id, {
+      const response = await selfCheckIn(id, {
         code: checkInCode,
         attendeeId: userAsAttendee?.id || "",
       });
-      toast.success(t("CHECK_IN_SUCCESS") || "Check-in successful!");
-      setUserStatus("checked");
-      setCheckInCode("");
+
+      console.log("Check-in response:", response);
+      if (response.status === "200") {
+        toast.success(t("Check-in successful!"));
+        setUserStatus("checked");
+        setCheckInCode("");
+      } else {
+        const errorMessage = response?.detail || t("Check-in failed");
+        toast.error(errorMessage);
+      }
     } catch (err: any) {
-      toast.error(err?.message || t("CHECK_IN_FAILED") || "Check-in failed");
+      const errorMessage =
+        err?.message ||
+        err?.response?.data?.message ||
+        t("Invalid check-in code");
+      toast.error(errorMessage);
     } finally {
       setSubmittingCheckIn(false);
     }
@@ -147,18 +222,16 @@ export default function EventRender({ eventData }: EventRenderProps) {
 
   const handleSubmitReview = async () => {
     if (!review.trim()) {
-      toast.error(t("PLEASE_ENTER_REVIEW") || "Please enter your review");
+      toast.error(t("Please enter your review"));
       return;
     }
     try {
       setSubmittingReview(true);
       await addReview(id, review);
-      toast.success(t("REVIEW_SUCCESS") || "Review submitted successfully!");
+      toast.success(t("Review submitted successfully!"));
       setReview("");
     } catch (err: any) {
-      toast.error(
-        err?.message || t("REVIEW_FAILED") || "Failed to submit review"
-      );
+      toast.error(err?.message || t("Failed to submit review"));
     } finally {
       setSubmittingReview(false);
     }
@@ -183,6 +256,23 @@ export default function EventRender({ eventData }: EventRenderProps) {
   const renderButton = () => {
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
+
+    if (isRegistrationClosed()) {
+      return (
+        <button disabled className={`${common} bg-red-500`}>
+          {t("Registration closed")}
+        </button>
+      );
+    }
+
+    if (isRegistrationFull()) {
+      return (
+        <button disabled className={`${common} bg-orange-500`}>
+          {t("Registration full")}
+        </button>
+      );
+    }
+
     switch (userStatus) {
       case "host":
         return (
@@ -205,14 +295,15 @@ export default function EventRender({ eventData }: EventRenderProps) {
               : t("REGISTERED")}
           </button>
         );
-      case "pending":
-        return (
-          <button disabled className={`${common} bg-yellow-500`}>
-            {t("PENDING")}
-          </button>
-        );
       case "guest":
-        return (
+        return isPublic ? (
+          <button
+            onClick={() => setShowGuestModal(true)}
+            className={`${common} bg-black hover:opacity-80`}
+          >
+            {t("REGISTER NOW")}
+          </button>
+        ) : (
           <button
             onClick={() => toast.info(t("PLEASE LOGIN"))}
             className={`${common} bg-gray-500`}
@@ -244,6 +335,142 @@ export default function EventRender({ eventData }: EventRenderProps) {
 
   return (
     <div className="min-h-[700px] flex flex-col">
+      {/* Guest Registration Modal */}
+      <AnimatePresence>
+        {showGuestModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowGuestModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {t("Register for Event")}
+                </h3>
+                <button
+                  onClick={() => setShowGuestModal(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t("Full Name")} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={guestFormData.fullName}
+                    onChange={(e) =>
+                      setGuestFormData({
+                        ...guestFormData,
+                        fullName: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t("Enter your full name")}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t("Email")} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={guestFormData.email}
+                    onChange={(e) =>
+                      setGuestFormData({
+                        ...guestFormData,
+                        email: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t("Enter your email")}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t("Date of Birth")} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={guestFormData.dateOfBirth}
+                    onChange={(e) =>
+                      setGuestFormData({
+                        ...guestFormData,
+                        dateOfBirth: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t("Nickname")} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={guestFormData.nickname}
+                    onChange={(e) =>
+                      setGuestFormData({
+                        ...guestFormData,
+                        nickname: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder={t("Enter your nickname")}
+                  />
+                </div>
+
+                <button
+                  onClick={handleGuestRegister}
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                          fill="none"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      {t("REGISTERING")}
+                    </span>
+                  ) : (
+                    t("Submit Registration")
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -277,12 +504,12 @@ export default function EventRender({ eventData }: EventRenderProps) {
               </p>
               <div className="flex justify-center gap-1">
                 <FlipNumbers
-                  height={15}
-                  width={12}
+                  height={18}
+                  width={22}
                   color="white"
                   background="rgba(255,255,255,0.1)"
                   play
-                  perspective={100}
+                  perspective={200}
                   numbers={`${String(countdown.hours).padStart(
                     2,
                     "0"
@@ -301,16 +528,12 @@ export default function EventRender({ eventData }: EventRenderProps) {
               <p className="text-xs opacity-80">
                 {t("REGISTERED") || "Registered"}
               </p>
-              <p className="text-lg font-bold">
-                {eventData.currentRegistered || 0}
-              </p>
+              <p className="text-lg font-bold">{currentRegistered}</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center">
               <CalendarDays className="w-5 h-5 mx-auto mb-1" />
               <p className="text-xs opacity-80">{t("LIMIT") || "Limit"}</p>
-              <p className="text-lg font-bold">
-                {eventData.limitRegister || "∞"}
-              </p>
+              <p className="text-lg font-bold">{limitRegister || "∞"}</p>
             </div>
           </div>
         </div>
@@ -322,7 +545,7 @@ export default function EventRender({ eventData }: EventRenderProps) {
               <h2 className="text-4xl font-bold text-gray-900 leading-tight flex-1">
                 {title}
               </h2>
-              {eventData.isPublic && (
+              {isPublic && (
                 <span className="ml-4 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-semibold whitespace-nowrap">
                   {t("PUBLIC") || "Public"}
                 </span>
@@ -424,7 +647,7 @@ export default function EventRender({ eventData }: EventRenderProps) {
       {/* Interactive Sections Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Check-in Section */}
-        {canCheckIn && (
+        {true && (
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -439,20 +662,19 @@ export default function EventRender({ eventData }: EventRenderProps) {
                   {t("CHECK_IN") || "Check-in"}
                 </h3>
                 <p className="text-sm text-green-700">
-                  {t("CONFIRM_ATTENDANCE") || "Confirm your attendance"}
+                  {t("Confirm your attendance")}
                 </p>
               </div>
             </div>
             <p className="text-gray-600 mb-5 text-sm leading-relaxed">
-              {t("ENTER_CODE_TO_CHECK_IN") ||
-                "Enter your check-in code to confirm attendance"}
+              {t("Enter your check-in code to confirm attendance")}
             </p>
             <div className="flex flex-col gap-3">
               <input
                 type="text"
                 value={checkInCode}
                 onChange={(e) => setCheckInCode(e.target.value)}
-                placeholder={t("ENTER_CODE") || "Enter code (e.g., 999999)"}
+                placeholder={t("Enter code (e.g., 999999)")}
                 className="w-full px-5 py-4 border-2 border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg font-mono bg-white"
               />
               <button
@@ -478,10 +700,10 @@ export default function EventRender({ eventData }: EventRenderProps) {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    {t("CHECKING_IN") || "Checking..."}
+                    {t("Checking...")}
                   </span>
                 ) : (
-                  t("CHECK_IN") || "Check-in Now"
+                  t("Check-in Now")
                 )}
               </button>
             </div>
@@ -489,7 +711,7 @@ export default function EventRender({ eventData }: EventRenderProps) {
         )}
 
         {/* Review Section */}
-        {canReview && (
+        {true && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -501,22 +723,21 @@ export default function EventRender({ eventData }: EventRenderProps) {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">
-                  {t("REVIEW_EVENT") || "Review Event"}
+                  {t("Review Event")}
                 </h3>
                 <p className="text-sm text-amber-700">
-                  {t("SHARE_EXPERIENCE") || "Share your experience"}
+                  {t("Share your experience")}
                 </p>
               </div>
             </div>
             <p className="text-gray-600 mb-5 text-sm leading-relaxed">
-              {t("SHARE_YOUR_THOUGHTS") ||
-                "Share your thoughts about this seminar"}
+              {t("Share your thoughts about this seminar")}
             </p>
             <div className="flex flex-col gap-3">
               <textarea
                 value={review}
                 onChange={(e) => setReview(e.target.value)}
-                placeholder={t("WRITE_REVIEW") || "Write your review..."}
+                placeholder={t("Write your review...")}
                 className="w-full px-5 py-4 border-2 border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent min-h-[140px] resize-none bg-white"
               />
               <button

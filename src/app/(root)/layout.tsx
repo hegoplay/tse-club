@@ -6,6 +6,7 @@ import { I18nextProvider } from "react-i18next";
 import { i18nInstance } from "@/language/i18n";
 import { Suspense } from "react";
 import LocaleProvider from "@/components/locale-provider";
+import { Toaster } from "sonner";
 
 export default function RootLayout({
   children,
@@ -22,6 +23,7 @@ export default function RootLayout({
           <LocaleProvider>
             {() => (
               <I18nextProvider i18n={i18nInstance}>
+                <Toaster richColors position="top-center" duration={2000} />
                 <Header />
                 {children}
                 <Footer />
