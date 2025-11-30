@@ -1,5 +1,6 @@
 import { Event, MediaData, MediaResponse } from "@/constant/types";
 import { HttpClient } from "@/lib/HttpClient";
+import { isTokenExpired } from "@/lib/utils";
 
 const API_PREFIX_EVENT_PATH = "/events";
 const API_PREFIX_PUBLIC_EVENT_PATH = "/public/events";
@@ -67,7 +68,7 @@ export const getRegisteredEvents = (params?: {
     `${API_PREFIX_EVENT_PATH}/search/registered-events`,
     { params: request }
   );
-  return response.then((res) => res._embedded.eventWrapperDtoList);
+  return response.then((res) => res._embedded ? res._embedded.eventWrapperDtoList : []);
 };
 
 export const selfCheckIn = (

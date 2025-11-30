@@ -11,6 +11,7 @@ export const getToken = (): string | null => {
 
 const withAuth = (headers: AxiosHeaders = new AxiosHeaders()): AxiosHeaders => {
   const token = getToken();
+  console.log("Attaching token to request:", token);
   if (token) headers.set("Authorization", token);
   return headers;
 };
