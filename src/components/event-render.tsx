@@ -15,6 +15,7 @@ import {
   registerForEventWithoutLogin,
   selfCheckIn,
   addReview,
+  getEventPublicById,
 } from "@/modules/services/eventService";
 import { toast } from "sonner";
 import FlipNumbers from "react-flip-numbers";
@@ -26,7 +27,9 @@ interface EventRenderProps {
   eventData: any;
 }
 
-export default function EventRender({ eventData }: EventRenderProps) {
+export default function EventRender({
+  eventData: initialEventData,
+}: EventRenderProps) {
   const { t } = useTranslation("common");
   const [countdown, setCountdown] = useState({
     days: 0,
@@ -35,6 +38,8 @@ export default function EventRender({ eventData }: EventRenderProps) {
     seconds: 0,
   });
   const [userStatus, setUserStatus] = useState<string>("");
+  const [eventData, setEventData] = useState(initialEventData);
+  const [isRefetching, setIsRefetching] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkInCode, setCheckInCode] = useState("");
   const [review, setReview] = useState("");
@@ -48,6 +53,29 @@ export default function EventRender({ eventData }: EventRenderProps) {
     dateOfBirth: "",
     nickname: "",
   });
+
+  useEffect(() => {
+    const refetchEventData = async () => {
+      if (typeof window === "undefined" || !eventData?.id) return;
+
+      const user = localStorage.getItem("user");
+      if (!user) return;
+
+      try {
+        setIsRefetching(true);
+        const freshData = await getEventPublicById(eventData.id);
+        if (freshData) {
+          setEventData(freshData);
+        }
+      } catch (error) {
+        console.error("Error refetching event data:", error);
+      } finally {
+        setIsRefetching(false);
+      }
+    };
+
+    refetchEventData();
+  }, [eventData?.id]);
 
   if (!eventData) return <p className="text-gray-500">{t("NO_EVENT_DATA")}</p>;
 
@@ -129,7 +157,6 @@ export default function EventRender({ eventData }: EventRenderProps) {
         console.error("Error checking user event status:", err);
       }
     };
-
     fetchStatus();
   }, [id, isHost, userAsOrganizer, userAttendeeStatus, userAsAttendee]);
 
@@ -152,6 +179,10 @@ export default function EventRender({ eventData }: EventRenderProps) {
       toast.success(t("Registration successful"));
       setUserStatus("registered");
       setCurrentRegistered((prev) => prev + 1);
+      const refreshedData = await getEventPublicById(id);
+      if (refreshedData) {
+        setEventData(refreshedData);
+      }
     } catch {
       toast.error(t("Registration failed"));
     } finally {
@@ -504,8 +535,8 @@ export default function EventRender({ eventData }: EventRenderProps) {
               </p>
               <div className="flex justify-center gap-1">
                 <FlipNumbers
-                  height={18}
-                  width={22}
+                  height={20}
+                  width={18}
                   color="white"
                   background="rgba(255,255,255,0.1)"
                   play
