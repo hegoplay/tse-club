@@ -9,6 +9,14 @@ const Page = async (props: {
   const params = await props.params;
 
   const res = await getEventPublicById(last(params.slugs) || "");
+<<<<<<< Updated upstream
+||||||| Stash base
+
+  console.log("Event data:", res);
+
+=======
+  console.log("Event data:", res);
+>>>>>>> Stashed changes
 
   return <EventRender eventData={res || undefined} />;
 };
