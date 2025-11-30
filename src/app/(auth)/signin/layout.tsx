@@ -42,7 +42,7 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang={"en"}>
+    <html lang={"vi"}>
       <head>
         <title>TSE Club | Sign in</title>
       </head>
