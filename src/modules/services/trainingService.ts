@@ -43,6 +43,7 @@ export const searchMyTrainings = (params?: {
   limit?: number;
   keyword?: string;
   status?: string;
+  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST";
 }) =>
   http
     .get(`${API_PREFIX_TRAINING_PATH}/me/search`, {
@@ -56,6 +57,7 @@ export const getPublicTraining = (params?: {
   keyword?: string;
   status?: string;
   startTime?: string;
+  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST";
 }) => {
   const res = http.get<any>(`${API_PREFIX_PUBLIC_TRAINING_PATH}/search`, {
     params,

@@ -25,14 +25,19 @@ interface Training {
   currentRegistered: number;
 }
 
+
 interface TrainingSectionProps {
   pageSize?: number;
   seeAll?: boolean;
+  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST"; //UPCOMING, ONGOING, PAST
+  title: string;
 }
 
 export default function TrainingSection({
   pageSize,
   seeAll,
+  rangeTimeType,
+  title,
 }: TrainingSectionProps) {
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +48,7 @@ export default function TrainingSection({
       try {
         const res = await getPublicTraining({
           size: pageSize,
-          startTime: dayjs().toISOString(),
+          rangeTimeType: rangeTimeType,
         });
         setTrainings(res || []);
       } catch (error) {
@@ -72,7 +77,7 @@ export default function TrainingSection({
         viewport={{ once: true }}
         className="text-2xl md:text-4xl font-bold text-gray-900 mb-4"
       >
-        {t("Increase your confidence with our online courses")}
+        {title}
       </motion.h2>
       <motion.p
         initial={{ opacity: 0, y: 30 }}

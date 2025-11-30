@@ -20,6 +20,7 @@ export const getEvents = (params?: {
   keyword?: string;
   category?: string;
   status?: string;
+  rangeTimeType?: string;
 }) => {
   const response = http.get(`${API_PREFIX_EVENT_PATH}/me/search`, {
     params,
@@ -36,6 +37,7 @@ export const getPublicEvents = (params?: {
   keyword?: string;
   category?: string;
   startTime?: string;
+  rangeTimeType?: string;
 }) => {
   const response = http.get(`${API_PREFIX_PUBLIC_EVENT_PATH}/search`, {
     params,
@@ -58,6 +60,7 @@ export const getRegisteredEvents = (params?: {
   startTime?: string;
   endTime?: string;
   sort?: string;
+  rangeTimeType?: string;
 }) => {
   const request = { request: params };
   const response = http.get(
