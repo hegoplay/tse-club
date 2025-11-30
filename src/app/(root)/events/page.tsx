@@ -46,8 +46,31 @@ export default function EventPage() {
         />
       </motion.div>
 
-      <EventSection pageSize={9} />
-      <TrainingSection pageSize={9} />
+      <EventSection
+        pageSize={9}
+        rangeTimeType="UPCOMING"
+        title={t("Upcoming events")}
+      />
+
+      <EventSection
+        pageSize={9}
+        rangeTimeType="ONGOING"
+        title={t("Ongoing events")}
+      />
+
+      <TrainingSection
+        pageSize={9}
+        rangeTimeType="UPCOMING"
+        title={t("Upcoming trainings")}
+      />
+
+      <TrainingSection
+        pageSize={9}
+        rangeTimeType="ONGOING"
+        title={t("Ongoing trainings")}
+      />
+
+
     </div>
   );
 }

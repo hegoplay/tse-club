@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { motion } from "framer-motion";
+import { it } from "node:test";
 
 const { Header: AntHeader } = Layout;
 
@@ -78,11 +79,12 @@ export default function Header() {
     {
       key: "about-us",
       label: (
-        <Link className="!text-black" href="/about-us">
+        <Link className="!text-black" href="/">
           {t("About us")}
         </Link>
       ),
     },
+    !isLoggedIn ?  
     {
       key: "join-us",
       label: (
@@ -90,7 +92,7 @@ export default function Header() {
           {t("Join Our Club")}
         </Link>
       ),
-    },
+    } : null,
     {
       key: "events",
       label: (
@@ -248,7 +250,7 @@ export default function Header() {
               transition={{ duration: 0.3 }}
               className="absolute top-[72px] left-0 w-full bg-white shadow-md flex flex-col items-start px-6 py-4 gap-4 z-[999] md:hidden"
             >
-              {menuItems.map((item) => (
+              {menuItems.filter(item => item != null).map((item) => (
                 <Link
                   key={item.key}
                   href="#"

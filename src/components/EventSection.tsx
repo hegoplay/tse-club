@@ -12,9 +12,11 @@ import dayjs from "dayjs";
 interface EventSectionProps {
   pageSize?: number;
   seeAll?: boolean;
+  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST"; //UPCOMING, ONGOING, PAST
+  title: string;
 }
 
-export default function EventSection({ pageSize, seeAll }: EventSectionProps) {
+export default function EventSection({ pageSize, seeAll, rangeTimeType, title }: EventSectionProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation("common");
@@ -24,7 +26,8 @@ export default function EventSection({ pageSize, seeAll }: EventSectionProps) {
       try {
         const data = await getPublicEvents({
           size: pageSize,
-          startTime: dayjs().toISOString(),
+          rangeTimeType: rangeTimeType,
+          sort: "location.startTime,desc",
         });
         setEvents(data);
       } catch (error) {
@@ -53,7 +56,7 @@ export default function EventSection({ pageSize, seeAll }: EventSectionProps) {
         viewport={{ once: true }}
         className="text-2xl md:text-4xl font-bold text-gray-900 mb-12"
       >
-        {t("Events and Training")}
+        {title}
       </motion.h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full mx-auto">

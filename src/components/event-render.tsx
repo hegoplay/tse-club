@@ -711,7 +711,7 @@ export default function EventRender({ eventData }: EventRenderProps) {
         )}
 
         {/* Review Section */}
-        {true && (
+        {(category === "SEMINAR") && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
