@@ -26,7 +26,7 @@ export const getEvents = (params?: {
   const response = http.get(`${API_PREFIX_EVENT_PATH}/me/search`, {
     params,
   });
-  return response.then((res) => res._embedded.eventWrapperDtoList);
+  return response.then((res) => res._embedded ? res._embedded.eventWrapperDtoList : []);
 };
 
 export const getPublicEvents = (params?: {
@@ -43,7 +43,7 @@ export const getPublicEvents = (params?: {
   const response = http.get(`${API_PREFIX_PUBLIC_EVENT_PATH}/search`, {
     params,
   });
-  return response.then((res) => res._embedded.eventWrapperDtoList);
+  return response.then((res) => res._embedded ? res._embedded.eventWrapperDtoList : []);
 };
 
 export const getEventPublicById = (id: string) =>

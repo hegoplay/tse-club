@@ -41,12 +41,23 @@ export class HttpClient {
   }
 
   get = <T = any>(url: string, cfg: RequestConfig = {}) =>
-    this.wrap<T>(
-      this.axios.get(url, {
-        headers: withAuth(new AxiosHeaders(cfg.headers)),
-        ...cfg,
-      })
-    );
+  this.wrap<T>(
+    this.axios.get(url, {
+      headers: withAuth(new AxiosHeaders(cfg.headers)),
+      ...cfg,
+      paramsSerializer: (params) => {
+        const searchParams = new URLSearchParams();
+        Object.entries(params).forEach(([key, value]) => {
+          if (Array.isArray(value)) {
+            value.forEach((v) => searchParams.append(key, v));
+          } else if (value !== undefined) {
+            searchParams.append(key, value as string);
+          }
+        });
+        return searchParams.toString();
+      }
+    })
+  );
 
   post = <T = any>(url: string, data: any = null, cfg: RequestConfig = {}) =>
     this.wrap<T>(

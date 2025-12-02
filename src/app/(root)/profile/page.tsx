@@ -193,7 +193,13 @@ export default function ProfilePage() {
 
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 hover:bg-gray-50 px-2 rounded-lg transition-colors">
-                  <span className="text-gray-600">Email</span>
+                  <span className="text-gray-600">{t("Full Name")}</span>
+                  <span className="font-medium text-gray-800 text-sm">
+                    {userInfo?.fullName || "—"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 hover:bg-gray-50 px-2 rounded-lg transition-colors">
+                  <span className="text-gray-600">{t("Email")}</span>
                   <span className="font-medium text-gray-800 text-sm">
                     {userInfo?.email}
                   </span>
@@ -297,6 +303,12 @@ export default function ProfilePage() {
           width={500}
         >
           <Form layout="vertical" form={form} className="mt-6">
+            <Form.Item
+              name="fullName"
+              label={<span className="font-medium">{t('Full Name')}</span>}
+            >
+              <Input size="large" className="bg-gray-50" />
+            </Form.Item>
             <Form.Item
               name="nickname"
               label={<span className="font-medium">Nickname</span>}

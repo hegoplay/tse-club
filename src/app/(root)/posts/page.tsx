@@ -16,28 +16,31 @@ export default function BlogPage() {
   const { t } = useTranslation("common");
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await getPublicPost({
-          page: 0,
-          size: 9,
-          sort: "postTime,desc",
-        });
-        setPosts(res._embedded?.postWrapperDtoList || []);
-      } catch (err) {
-        console.error("Error fetching posts:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-  }, []);
+    const handler = setTimeout(() => {
+      const fetchPosts = async () => {
+        try {
+          setLoading(true);
+          const res = await getPublicPost({
+            page: 0,
+            size: 9,
+            sort: "postTime,desc",
+            searchs: ["title"],
+            searchValues: ["*" + searchTerm + "*"],
+          });
+          setPosts(res._embedded?.postWrapperDtoList || []);
+        } catch (err) {
+          console.error("Error fetching posts:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchPosts();
+    }, 400); // 500ms delay
 
-  const filteredPosts = posts.filter(
-    (post) =>
-      post.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.excerpt?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   return (
     <div className="min-h-screen bg-[#f4faf4] pb-20">
@@ -61,9 +64,9 @@ export default function BlogPage() {
         <div className="lg:col-span-3 space-y-8">
           {loading ? (
             <p className="text-center text-gray-600">{t("Loading posts...")}</p>
-          ) : filteredPosts.length > 0 ? (
+          ) : posts.length > 0 ? (
             <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-              {filteredPosts.map((post, index) => (
+              {posts.map((post, index) => (
                 <motion.div
                   key={post.id}
                   initial={{ opacity: 0, y: 40 }}
@@ -99,10 +102,13 @@ export default function BlogPage() {
                     {post.title}
                   </h2>
 
-                  {/* 📜 Excerpt */}
-                  <p className="text-gray-700 text-sm md:text-base line-clamp-3 mb-4">
-                    {post.excerpt}
-                  </p>
+                  <Image
+                    src={post.featureImageUrl || "/images/default-post.webp"}
+                    alt={post.title || ""}
+                    width={400}
+                    height={200}
+                    className="object-cover rounded-2xl mb-4 w-100 h-50"
+                  />
 
                   {/* 🔗 Read more */}
                   <Link href={`/posts/${post.id}`}>
