@@ -35,7 +35,7 @@ export default function BlogPage() {
         }
       };
       fetchPosts();
-    }, 400); // 400ms delay
+    }, 400); // 500ms delay
 
     return () => {
       clearTimeout(handler);
@@ -103,7 +103,7 @@ export default function BlogPage() {
                   </h2>
 
                   <Image
-                    src={post.featureImageUrl || ""}
+                    src={post.featureImageUrl || "/images/default-post.webp"}
                     alt={post.title || ""}
                     width={400}
                     height={200}

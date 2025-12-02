@@ -16,7 +16,7 @@ export default function HomePage() {
       {/* HERO SECTION */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
         {/* Left */}
-        <div className="bg-[#36b24a] rounded-2xl p-6 sm:p-10 lg:p-16 flex flex-col justify-center text-center md:text-left">
+        <div className="bg-green-500 rounded-2xl p-6 sm:p-10 lg:p-16 flex flex-col justify-center text-center md:text-left">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
