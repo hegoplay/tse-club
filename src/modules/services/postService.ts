@@ -9,6 +9,14 @@ const BASE_URL =
 
 const http = new HttpClient(BASE_URL);
 
+interface SearchDto{
+  page?: number;
+  size?: number;
+  sort?: string;
+  searchs?: string[];
+  searchValues?: string[];
+}
+
 const user = JSON.parse(
   (typeof window !== "undefined" && localStorage.getItem("user")) || "{}"
 );
@@ -55,10 +63,7 @@ export const updatePost = (id: string, data: Partial<Post>) =>
 export const deletePost = (id: string) =>
   http.post<PostResponse>(`${API_PREFIX_POST_PATH}/deletepost/${id}`);
 
-export const getPublicPost = async (params?: {
-  page?: number;
-  size?: number;
-  sort?: string;
+export const getPublicPost = async (params?: SearchDto & {
   title?: string;
   status?: string;
 }) => {
