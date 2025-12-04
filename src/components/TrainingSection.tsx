@@ -49,6 +49,7 @@ export default function TrainingSection({
         const res = await getPublicTraining({
           size: pageSize,
           rangeTimeType: rangeTimeType,
+          sort: "location.startTime,asc",
         });
         setTrainings(res || []);
       } catch (error) {

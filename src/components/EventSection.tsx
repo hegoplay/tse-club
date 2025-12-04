@@ -27,7 +27,7 @@ export default function EventSection({ pageSize, seeAll, rangeTimeType, title }:
         const data = await getPublicEvents({
           size: pageSize,
           rangeTimeType: rangeTimeType,
-          sort: "location.startTime,desc",
+          sort: "location.startTime,asc",
         });
         setEvents(data);
       } catch (error) {

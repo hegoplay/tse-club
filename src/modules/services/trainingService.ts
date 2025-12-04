@@ -8,6 +8,14 @@ const BASE_URL =
 
 const http = new HttpClient(BASE_URL);
 
+interface SearchDto {
+  page?: number;
+  size?: number;
+  searchs?: string[];
+  searchValues?: string[];
+  sort?: string;
+}
+
 // Tạo mới một training
 export const createTraining = (data: any) =>
   http.post<any>(`${API_PREFIX_TRAINING_PATH}`, data);
@@ -51,9 +59,7 @@ export const searchMyTrainings = (params?: {
     })
     .then((res) => res._embedded?.trainingWrapperDtoList ?? []);
 
-export const getPublicTraining = (params?: {
-  page?: number;
-  size?: number;
+export const getPublicTraining = (params?: SearchDto & {
   keyword?: string;
   status?: string;
   startTime?: string;
