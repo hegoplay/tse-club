@@ -31,6 +31,8 @@ import { getRegisteredEvents } from "@/modules/services/eventService";
 import { useTranslation } from "react-i18next";
 import { Event } from "@/constant/types";
 import { formatDate } from "@/lib/utils";
+import { CopyIcon } from "lucide-react";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { t } = useTranslation("common");
@@ -145,10 +147,33 @@ export default function ProfilePage() {
               <p className="text-blue-100 text-lg mb-4">
                 @{userInfo?.username}
               </p>
+              <p className="text-blue-100 flex gap-2 text-lg mb-4">
+                UID: {userInfo?.id}
+                <Button
+                  size="small"
+                  icon={<CopyIcon size={14} />}
+                  onClick={() => {
+                    navigator.clipboard.writeText(userInfo?.id || "");
+                    toast.success("Copied UID!");
+                  }}
+                ></Button>
+              </p>
               <div className="flex flex-wrap gap-3 justify-center md:justify-start">
                 <Badge
                   count={userInfo?.role}
-                  style={{ backgroundColor: "#fbbf24", color: "#000" }}
+                  style={{
+                    backgroundColor: "#fbbf24",
+                    color: "#000",
+                  }}
+                  className="text-sm px-3 py-1"
+                />
+                <Badge
+                  count={userInfo?.type === 2 ? "Giảng viên" : "Sinh viên"}
+                  style={{
+                    backgroundColor: "#fbbf24",
+                    color: "#000",
+                    textTransform: "uppercase",
+                  }}
                   className="text-sm px-3 py-1"
                 />
               </div>
@@ -163,7 +188,7 @@ export default function ProfilePage() {
                 className="bg-white text-blue-600 hover:bg-blue-50 border-0 shadow-lg"
                 style={{ color: "#fff" }}
               >
-                Chỉnh sửa
+                {t("Edit")}
               </Button>
               <Button
                 size="large"
@@ -171,7 +196,7 @@ export default function ProfilePage() {
                 onClick={() => setIsPasswordModalOpen(true)}
                 className="bg-blue-500 text-white hover:bg-blue-400 border-0 shadow-lg"
               >
-                Đổi mật khẩu
+                {t("Change Password")}
               </Button>
             </div>
           </div>
@@ -223,7 +248,6 @@ export default function ProfilePage() {
             </div>
           </Card>
 
-          {/* Attendance Points Card */}
           <Card className="rounded-2xl shadow-lg border-0 hover:shadow-xl transition-shadow bg-gradient-to-br from-green-50 to-emerald-50">
             <div className="space-y-4">
               <div className="flex items-center gap-3 pb-3 border-b border-green-100">
@@ -239,7 +263,7 @@ export default function ProfilePage() {
                 <div className="text-5xl font-bold text-green-600 mb-2">
                   {userInfo?.attendancePoint || 0}
                 </div>
-                <p className="text-gray-600">Điểm hiện có</p>
+                <p className="text-gray-600">{t("Điểm hiện có")}</p>
               </div>
             </div>
           </Card>
@@ -260,7 +284,7 @@ export default function ProfilePage() {
                 <div className="text-5xl font-bold text-purple-600 mb-2">
                   {userInfo?.contributionPoint || 0}
                 </div>
-                <p className="text-gray-600">Điểm hiện có</p>
+                <p className="text-gray-600">{t("Điểm hiện có")}</p>
               </div>
             </div>
           </Card>
@@ -305,7 +329,7 @@ export default function ProfilePage() {
           <Form layout="vertical" form={form} className="mt-6">
             <Form.Item
               name="fullName"
-              label={<span className="font-medium">{t('Full Name')}</span>}
+              label={<span className="font-medium">{t("Full Name")}</span>}
             >
               <Input size="large" className="bg-gray-50" />
             </Form.Item>
