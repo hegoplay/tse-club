@@ -10,6 +10,8 @@ const Page = async (props: {
 
   const res = await getPublicTrainingById(last(params.slugs) || "");
 
+  console.log("Training Data:", res);
+
   return <TrainingRender trainingData={res || undefined} />;
 };
 

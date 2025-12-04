@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, MapPin, Users, X } from "lucide-react";
+import { CalendarDays, MapPin, UserCheck, Users, X } from "lucide-react";
 import {
   registerForEvent,
   registerForEventWithoutLogin,
@@ -15,6 +15,7 @@ import CheckInSection from "./CheckInSection";
 import ReviewSection from "./ReviewSection";
 import EventPostsSection from "./EventPostSection";
 import { formatAllowedParticipants } from "@/lib/allowedParticipantsUtils";
+import { Badge } from "antd";
 
 interface EventRenderProps {
   eventData: any;
@@ -89,6 +90,7 @@ export default function EventRender({
     limitRegister,
     registrationDeadline,
     allowedType,
+    single
   } = eventData;
 
   useEffect(() => {
@@ -151,6 +153,37 @@ export default function EventRender({
     fetchStatus();
   }, [id, isHost, userAsOrganizer, userAttendeeStatus, userAsAttendee]);
 
+
+  const getBadge = (key: string, value: string) => {
+    return (
+      <Badge
+        key={key}
+        count={value}
+        style={{
+          backgroundColor: "transparent",
+          color: "#000",
+          fontSize: "var(--text-sm)",
+          fontWeight: "600",
+        }}
+        className="text-sm px-3 py-1"
+      />
+    );
+  }
+
+  const generateUserTypeBadge = (type: number) => {
+    const keys = ["student", "member", "teacher", "admin"];
+    const values = ["Sinh viên", "Thành viên CLB", "Giảng viên", "Quản trị viên"];
+    let badges = [];
+    for (let i = 0; i < keys.length; i++) {
+      if ((type & (1 << i)) === 0) continue;
+        console.log("value: ",values[i]);
+        badges.push(getBadge(keys[i], values[i]));
+    }
+    return <>
+      {badges.map((badge) => badge)}
+    </>
+  }
+
   const isRegistrationClosed = () => {
     if (registrationDeadline) {
       const deadline = new Date(registrationDeadline).getTime();
@@ -162,6 +195,10 @@ export default function EventRender({
   const isRegistrationFull = () => {
     return limitRegister && currentRegistered >= limitRegister;
   };
+
+  const isSingleEvent = () =>{
+    return single;
+  }
 
   const handleRegister = async () => {
     try {
@@ -233,7 +270,13 @@ export default function EventRender({
   const renderButton = () => {
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
-
+    if (!isSingleEvent()){
+      return (
+        <button disabled className={`${common} bg-gray-500`}>
+          {t("DISABLED_FOR_MULTI_EVENT")}
+        </button>
+      );
+    }
     if (isRegistrationClosed()) {
       return (
         <button disabled className={`${common} bg-red-500`}>
@@ -600,6 +643,22 @@ export default function EventRender({
                   </div>
                 </div>
               </div>
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="bg-teal-100 p-3 rounded-lg">
+                    <UserCheck className="w-5 h-5 text-teal-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {t("user type allowed")}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {generateUserTypeBadge(allowedType)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 

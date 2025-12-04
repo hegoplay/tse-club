@@ -75,3 +75,8 @@ export const getPublicTrainingById = (trainingId: string) =>
 
 export const registerForTraining = (trainingId: string) =>
   http.post(`${API_PREFIX_TRAINING_PATH}/${trainingId}/self-trigger-register`);
+
+export const unregisterForTraining = (trainingId: string) =>
+  http.post(
+    `${API_PREFIX_TRAINING_PATH}/${trainingId}/self-trigger-unregister`
+  );
