@@ -16,6 +16,7 @@ import ReviewSection from "./ReviewSection";
 import EventPostsSection from "./EventPostSection";
 import { formatAllowedParticipants } from "@/lib/allowedParticipantsUtils";
 import { Badge } from "antd";
+import { log } from "console";
 
 interface EventRenderProps {
   eventData: any;
@@ -176,7 +177,6 @@ export default function EventRender({
     let badges = [];
     for (let i = 0; i < keys.length; i++) {
       if ((type & (1 << i)) === 0) continue;
-        console.log("value: ",values[i]);
         badges.push(getBadge(keys[i], values[i]));
     }
     return <>
@@ -204,17 +204,15 @@ export default function EventRender({
     try {
       setLoading(true);
       const res = await registerForEvent(id);
-      if (res.status === "200") {
-        toast.success(t("Registration successful"));
-        setUserStatus("registered");
-        setCurrentRegistered((prev) => prev + 1);
-        const refreshedData = await getEventPublicById(id);
-        if (refreshedData) {
-          setEventData(refreshedData);
-        }
-      } else {
-        toast.error(res?.detail || t("Registration failed"));
+      console.log("register response:", res);
+      toast.success(t("Registration successful"));
+      setUserStatus("registered");
+      setCurrentRegistered((prev) => prev + 1);
+      const refreshedData = await getEventPublicById(id);
+      if (refreshedData) {
+        setEventData(refreshedData);
       }
+
     } catch {
       toast.error(t("Registration failed"));
     } finally {
@@ -268,6 +266,9 @@ export default function EventRender({
   });
 
   const renderButton = () => {
+    const user =
+      typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : null;
+    // console.log("allowedType", allowedType, "user.type", user?.type);
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
     if (!isSingleEvent()){
@@ -332,13 +333,23 @@ export default function EventRender({
           </button>
         );
       default:
-        return (
+        return (eventData.allowedType & user?.type) ? (
           <button
             onClick={handleRegister}
             disabled={loading}
             className={`${common} bg-black hover:opacity-80`}
           >
             {loading ? t("REGISTERING") : t("REGISTER NOW")}
+          </button>
+        )
+        :
+        (
+          <button
+            onClick={handleRegister}
+            disabled
+            className={`${common} bg-black hover:opacity-80`}
+          >
+            {t("You are not allowed to register")}
           </button>
         );
     }
@@ -562,18 +573,6 @@ export default function EventRender({
               )}
             </div>
 
-            {/* Allowed Participants - NEW */}
-            {!isPublic && allowedType && (
-              <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
-                <p className="text-sm font-medium text-blue-900 mb-1">
-                  {t("EVENT FOR")}:
-                </p>
-                <p className="text-base font-semibold text-blue-700">
-                  {formatAllowedParticipants(allowedType, isPublic, t)}
-                </p>
-              </div>
-            )}
-
             <div
               dangerouslySetInnerHTML={{ __html: description || "" }}
               className="text-base text-gray-700 mb-8 leading-relaxed bg-white/60 p-6 rounded-2xl backdrop-blur-sm border border-gray-100"
@@ -643,6 +642,8 @@ export default function EventRender({
                   </div>
                 </div>
               </div>
+              {
+                !isPublic && allowedType != 0 && 
               <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-3">
                   <div className="bg-teal-100 p-3 rounded-lg">
@@ -658,6 +659,7 @@ export default function EventRender({
                   </div>
                 </div>
               </div>
+              }
 
             </div>
           </div>
