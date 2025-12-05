@@ -3,9 +3,12 @@
 import { Card, Tag, Avatar, Button } from "antd";
 import { useTranslation } from "react-i18next";
 import { Calendar, MapPin, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { registerForTraining } from "@/modules/services/trainingService";
+import {
+  registerForTraining,
+  getPublicTrainingById,
+} from "@/modules/services/trainingService";
 import Link from "next/link";
 
 interface TrainingRenderProps {
@@ -16,8 +19,11 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
   const { t } = useTranslation("common");
   const [loading, setLoading] = useState(false);
   const [userStatus, setUserStatus] = useState<string>("");
+  const [currentTrainingData, setTrainingData] = useState(trainingData);
+  const [isRefetching, setIsRefetching] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  if (!trainingData) {
+  if (!currentTrainingData) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600 text-lg">
         {t("Training not found")}
@@ -39,7 +45,35 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
     isHost,
     userAsOrganizer,
     userAttendeeStatus,
-  } = trainingData;
+    registered,
+  } = currentTrainingData;
+
+  useEffect(() => {
+    const refetchTrainingData = async () => {
+      if (typeof window === "undefined" || !currentTrainingData?.id) return;
+
+      const user = localStorage.getItem("user");
+      setIsLoggedIn(!!user);
+
+      // We refetch data to get the latest user-specific status
+      if (!user) return;
+
+      try {
+        setIsRefetching(true);
+        const freshData = await getPublicTrainingById(currentTrainingData.id);
+        if (freshData) {
+          console.log(freshData);
+          setTrainingData(freshData);
+        }
+      } catch (error) {
+        console.error("Error refetching training data:", error);
+      } finally {
+        setIsRefetching(false);
+      }
+    };
+
+    refetchTrainingData();
+  }, [currentTrainingData?.id, userStatus]);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -63,7 +97,7 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
     };
 
     fetchStatus();
-  }, [id]);
+  }, [id, isHost, userAsOrganizer, userAttendeeStatus]);
 
   const handleRegister = async () => {
     try {
@@ -78,9 +112,33 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
     }
   };
 
+  const handleUnregister = async () => {
+    try {
+      setLoading(true);
+      await registerForTraining(id);
+      toast.success(t("UNREGISTER_SUCCESS"));
+      setUserStatus("registering");
+    } catch {
+      toast.error(t("UNREGISTER_FAILED"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderButton = () => {
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
+    if (currentTrainingData.registered) {
+      return (
+        <button
+          onClick={handleUnregister}
+          className={`${common} bg-blue-600 cursor-pointer group hover:bg-red-500 transition-colors duration-300`}
+        >
+          <span className="group-hover:hidden">{t("REGISTERED")}</span>
+          <span className="hidden group-hover:inline">{t("UNREGISTER")}</span>
+        </button>
+      );
+    }
     switch (userStatus) {
       case "host":
         return (
@@ -92,12 +150,6 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
         return (
           <button disabled className={`${common} bg-purple-600`}>
             {t("YOU ARE ORGANIZER")}
-          </button>
-        );
-      case "registered":
-        return (
-          <button disabled className={`${common} bg-blue-600`}>
-            {t("REGISTERED")}
           </button>
         );
       case "pending":

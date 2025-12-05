@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CalendarDays, MapPin, Users, X } from "lucide-react";
+import { CalendarDays, MapPin, UserCheck, Users, X } from "lucide-react";
 import {
   registerForEvent,
   registerForEventWithoutLogin,
@@ -15,6 +15,8 @@ import CheckInSection from "./CheckInSection";
 import ReviewSection from "./ReviewSection";
 import EventPostsSection from "./EventPostSection";
 import { formatAllowedParticipants } from "@/lib/allowedParticipantsUtils";
+import { Badge } from "antd";
+import { log } from "console";
 
 interface EventRenderProps {
   eventData: any;
@@ -89,6 +91,7 @@ export default function EventRender({
     limitRegister,
     registrationDeadline,
     allowedType,
+    single
   } = eventData;
 
   useEffect(() => {
@@ -151,6 +154,36 @@ export default function EventRender({
     fetchStatus();
   }, [id, isHost, userAsOrganizer, userAttendeeStatus, userAsAttendee]);
 
+
+  const getBadge = (key: string, value: string) => {
+    return (
+      <Badge
+        key={key}
+        count={value}
+        style={{
+          backgroundColor: "transparent",
+          color: "#000",
+          fontSize: "var(--text-sm)",
+          fontWeight: "600",
+        }}
+        className="text-sm px-3 py-1"
+      />
+    );
+  }
+
+  const generateUserTypeBadge = (type: number) => {
+    const keys = ["student", "member", "teacher", "admin"];
+    const values = ["Sinh viên", "Thành viên CLB", "Giảng viên", "Quản trị viên"];
+    let badges = [];
+    for (let i = 0; i < keys.length; i++) {
+      if ((type & (1 << i)) === 0) continue;
+        badges.push(getBadge(keys[i], values[i]));
+    }
+    return <>
+      {badges.map((badge) => badge)}
+    </>
+  }
+
   const isRegistrationClosed = () => {
     if (registrationDeadline) {
       const deadline = new Date(registrationDeadline).getTime();
@@ -163,21 +196,23 @@ export default function EventRender({
     return limitRegister && currentRegistered >= limitRegister;
   };
 
+  const isSingleEvent = () =>{
+    return single;
+  }
+
   const handleRegister = async () => {
     try {
       setLoading(true);
       const res = await registerForEvent(id);
-      if (res.status === "200") {
-        toast.success(t("Registration successful"));
-        setUserStatus("registered");
-        setCurrentRegistered((prev) => prev + 1);
-        const refreshedData = await getEventPublicById(id);
-        if (refreshedData) {
-          setEventData(refreshedData);
-        }
-      } else {
-        toast.error(res?.detail || t("Registration failed"));
+      console.log("register response:", res);
+      toast.success(t("Registration successful"));
+      setUserStatus("registered");
+      setCurrentRegistered((prev) => prev + 1);
+      const refreshedData = await getEventPublicById(id);
+      if (refreshedData) {
+        setEventData(refreshedData);
       }
+
     } catch {
       toast.error(t("Registration failed"));
     } finally {
@@ -231,9 +266,18 @@ export default function EventRender({
   });
 
   const renderButton = () => {
+    const user =
+      typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : null;
+    // console.log("allowedType", allowedType, "user.type", user?.type);
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
-
+    if (!isSingleEvent()){
+      return (
+        <button disabled className={`${common} bg-gray-500`}>
+          {t("not available for multi events")}
+        </button>
+      );
+    }
     if (isRegistrationClosed()) {
       return (
         <button disabled className={`${common} bg-red-500`}>
@@ -289,13 +333,23 @@ export default function EventRender({
           </button>
         );
       default:
-        return (
+        return (eventData.allowedType & user?.type) ? (
           <button
             onClick={handleRegister}
             disabled={loading}
             className={`${common} bg-black hover:opacity-80`}
           >
             {loading ? t("REGISTERING") : t("REGISTER NOW")}
+          </button>
+        )
+        :
+        (
+          <button
+            onClick={handleRegister}
+            disabled
+            className={`${common} bg-black hover:opacity-80`}
+          >
+            {t("You are not allowed to register")}
           </button>
         );
     }
@@ -519,18 +573,6 @@ export default function EventRender({
               )}
             </div>
 
-            {/* Allowed Participants - NEW */}
-            {!isPublic && allowedType && (
-              <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-200">
-                <p className="text-sm font-medium text-blue-900 mb-1">
-                  {t("EVENT FOR")}:
-                </p>
-                <p className="text-base font-semibold text-blue-700">
-                  {formatAllowedParticipants(allowedType, isPublic, t)}
-                </p>
-              </div>
-            )}
-
             <div
               dangerouslySetInnerHTML={{ __html: description || "" }}
               className="text-base text-gray-700 mb-8 leading-relaxed bg-white/60 p-6 rounded-2xl backdrop-blur-sm border border-gray-100"
@@ -600,6 +642,25 @@ export default function EventRender({
                   </div>
                 </div>
               </div>
+              {
+                !isPublic && allowedType != 0 && 
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-3">
+                  <div className="bg-teal-100 p-3 rounded-lg">
+                    <UserCheck className="w-5 h-5 text-teal-600" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">
+                      {t("user type allowed")}
+                    </p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {generateUserTypeBadge(allowedType)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              }
+
             </div>
           </div>
 

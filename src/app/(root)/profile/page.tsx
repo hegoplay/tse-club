@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Card,
   Avatar,
@@ -87,6 +87,34 @@ export default function ProfilePage() {
     }
   };
 
+  const getBadge = (key: string, value: string) => {
+    return (
+      <Badge
+        key={key}
+        count={value}
+        style={{
+          backgroundColor: "#cf1fb0",
+          color: "#000",
+        }}
+        className="text-sm px-3 py-1"
+      />
+    );
+  }
+
+  const generateUserTypeBadge = (type: number) => {
+    const keys = ["student", "member", "teacher", "admin"];
+    const values = ["Sinh viên", "Thành viên CLB", "Giảng viên", "Quản trị viên"];
+    let badges = [];
+    for (let i = 0; i < keys.length; i++) {
+      if ((type & (1 << i)) === 0) continue;
+        console.log("value: ",values[i]);
+        badges.push(getBadge(keys[i], values[i]));
+    }
+    return <>
+      {badges.map((badge) => badge)}
+    </>
+  }
+
   const columns = [
     {
       title: "Tên sự kiện",
@@ -167,15 +195,7 @@ export default function ProfilePage() {
                   }}
                   className="text-sm px-3 py-1"
                 />
-                <Badge
-                  count={userInfo?.type === 2 ? "Giảng viên" : "Sinh viên"}
-                  style={{
-                    backgroundColor: "#fbbf24",
-                    color: "#000",
-                    textTransform: "uppercase",
-                  }}
-                  className="text-sm px-3 py-1"
-                />
+                {generateUserTypeBadge(userInfo?.type || 0)}
               </div>
             </div>
 

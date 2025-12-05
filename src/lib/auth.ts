@@ -29,6 +29,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        token.type = (user as any).type;
       }
       return token;
     },
@@ -37,6 +38,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.email = token.email;
         session.user.name = token.name;
+        (session.user as any).type = token.type;
       }
       return session;
     },

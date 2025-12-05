@@ -10,6 +10,8 @@ const Page = async (props: {
 
   const res = await getEventPublicById(last(params.slugs) || "");
 
+  console.log("Event Data:", res);
+
   return <EventRender eventData={res || undefined} />;
 };
 
