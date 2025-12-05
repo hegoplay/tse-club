@@ -273,7 +273,7 @@ export default function EventRender({
     if (!isSingleEvent()){
       return (
         <button disabled className={`${common} bg-gray-500`}>
-          {t("DISABLED_FOR_MULTI_EVENT")}
+          {t("not available for multi events")}
         </button>
       );
     }
