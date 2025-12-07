@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import Image from "next/image";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { Images } from "@/constant/image";
 
 interface EventPostsSectionProps {
   eventPosts: any[];
@@ -40,17 +41,16 @@ export default function EventPostsSection({
             className="rounded-3xl overflow-hidden flex flex-col shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl group"
             style={{ backgroundColor: bgColors[i % bgColors.length] }}
           >
-            {post.featureImageUrl && (
-              <div className="w-full h-56 relative overflow-hidden">
-                <Image
-                  src={post.featureImageUrl}
-                  alt={post.title || ""}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </div>
-            )}
+            <div className="w-full h-56 relative overflow-hidden">
+              <Image
+                src={post.featureImageUrl || Images.emptyImage.src}
+                alt={post.title || ""}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+
             <div className="flex flex-col text-left p-7 flex-grow">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 bg-gray-900 rounded-full"></div>

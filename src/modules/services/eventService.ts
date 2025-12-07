@@ -26,7 +26,9 @@ export const getEvents = (params?: {
   const response = http.get(`${API_PREFIX_EVENT_PATH}/me/search`, {
     params,
   });
-  return response.then((res) => res._embedded ? res._embedded.eventWrapperDtoList : []);
+  return response.then((res) =>
+    res._embedded ? res._embedded.eventWrapperDtoList : []
+  );
 };
 
 export const getPublicEvents = (params?: {
@@ -43,7 +45,9 @@ export const getPublicEvents = (params?: {
   const response = http.get(`${API_PREFIX_PUBLIC_EVENT_PATH}/search`, {
     params,
   });
-  return response.then((res) => res._embedded ? res._embedded.eventWrapperDtoList : []);
+  return response.then((res) =>
+    res._embedded ? res._embedded.eventWrapperDtoList : []
+  );
 };
 
 export const getEventPublicById = (id: string) =>
@@ -68,7 +72,9 @@ export const getRegisteredEvents = (params?: {
     `${API_PREFIX_EVENT_PATH}/search/registered-events`,
     { params: request }
   );
-  return response.then((res) => res._embedded ? res._embedded.eventWrapperDtoList : []);
+  return response.then((res) =>
+    res._embedded ? res._embedded.eventWrapperDtoList : []
+  );
 };
 
 export const publicSelfCheckIn = (
@@ -79,7 +85,6 @@ export const publicSelfCheckIn = (
 
 export const selfCheckIn = (eventId: string, data: { code: string }) =>
   http.post(`${API_PREFIX_EVENT_PATH}/${eventId}/self-check-in`, data);
-
 
 export const addReview = (eventId: string, review: string) =>
   http.post(`${API_PREFIX_EVENT_PATH}/seminar/${eventId}/add-review`, review);

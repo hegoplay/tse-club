@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
-import { publicSelfCheckIn, selfCheckIn } from "@/modules/services/eventService";
+import {
+  publicSelfCheckIn,
+  selfCheckIn,
+} from "@/modules/services/eventService";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -38,13 +41,12 @@ export default function CheckInSection({
 
     try {
       setSubmitting(true);
-      let response 
-      if (isLoggedIn){
+      let response;
+      if (isLoggedIn) {
         response = await selfCheckIn(eventId, {
           code: checkInCode,
         });
-      }
-      else {
+      } else {
         response = await publicSelfCheckIn(eventId, {
           code: checkInCode,
           attendeeId: isLoggedIn ? userAsAttendee?.id || "" : attendeeId,
@@ -77,7 +79,7 @@ export default function CheckInSection({
     const start = new Date(startTime);
     const end = new Date(endTime);
     return now >= start && now <= end;
-  }
+  };
 
   return (
     <motion.div
@@ -115,7 +117,11 @@ export default function CheckInSection({
           type="text"
           value={checkInCode}
           onChange={(e) => setCheckInCode(e.target.value)}
-          placeholder={isCheckInOpen() ? t("Enter code (e.g., 999999)") : t("Check-in is not open")}
+          placeholder={
+            isCheckInOpen()
+              ? t("Enter code (e.g., 999999)")
+              : t("Check-in is not open")
+          }
           disabled={!isCheckInOpen()}
           className="w-full px-5 py-4 border-2 border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg font-mono bg-white"
         />

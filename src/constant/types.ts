@@ -451,6 +451,7 @@ export interface Post {
   comments?: Comment[];
   lastModifiedTime?: string;
   event?: Event;
+  training?: Training;
 }
 
 export interface Comment {
@@ -539,6 +540,7 @@ export interface Organizer {
 }
 
 export interface Training {
+  id?: string;
   title: string;
   trainingEvents: Event[];
   location: Location;

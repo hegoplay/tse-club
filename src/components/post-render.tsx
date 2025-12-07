@@ -10,6 +10,8 @@ import { Post } from "@/constant/types";
 import { getPosts, getPostsByCategory } from "@/modules/services/postService";
 import { tryParse } from "@/lib/helper";
 import PostItem from "./post-item";
+import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 interface PostRenderProps {
   pageData?: Post;
@@ -52,6 +54,7 @@ const PostRender = ({
   const [isTOCOpen, setIsTOCOpen] = useState(false);
   const [isTOCFixed, setIsTOCFixed] = useState(false);
   const [dataRelatedPost, setDataRelatedPost] = useState<Post[]>();
+  const { t } = useTranslation("common");
 
   const fetchData = async () => {
     if (!pageData) return;
@@ -198,6 +201,31 @@ const PostRender = ({
                 content={normalContent ?? ""}
                 tableOfContents={tableOfContents}
               />
+              {(pageData?.event || pageData?.training) && (
+                <Link
+                  href={`${
+                    pageData.event
+                      ? `/events/${pageData?.event?.id}`
+                      : `/training/${pageData?.training?.id}`
+                  }`}
+                  className="mt-auto bg-gray-900 text-white rounded-full px-6 py-3 font-semibold self-start hover:bg-gray-800 transition-all text-sm shadow-md hover:shadow-lg transform hover:scale-105 inline-flex items-center gap-2 group"
+                >
+                  {t("REGISTER NOW")}
+                  <svg
+                    className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </Link>
+              )}
             </div>
           </div>
         </div>
