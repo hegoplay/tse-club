@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
-import { selfCheckIn } from "@/modules/services/eventService";
+import { publicSelfCheckIn, selfCheckIn } from "@/modules/services/eventService";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -9,12 +9,16 @@ interface CheckInSectionProps {
   eventId: string;
   userAsAttendee?: any;
   isLoggedIn: boolean;
+  startTime: string;
+  endTime: string;
 }
 
 export default function CheckInSection({
   eventId,
   userAsAttendee,
   isLoggedIn,
+  startTime,
+  endTime,
 }: CheckInSectionProps) {
   const { t } = useTranslation("common");
   const [checkInCode, setCheckInCode] = useState("");
@@ -34,18 +38,28 @@ export default function CheckInSection({
 
     try {
       setSubmitting(true);
-      const response = await selfCheckIn(eventId, {
-        code: checkInCode,
-        attendeeId: isLoggedIn ? userAsAttendee?.id || "" : attendeeId,
-      });
+      let response 
+      if (isLoggedIn){
+        response = await selfCheckIn(eventId, {
+          code: checkInCode,
+        });
+      }
+      else {
+        response = await publicSelfCheckIn(eventId, {
+          code: checkInCode,
+          attendeeId: isLoggedIn ? userAsAttendee?.id || "" : attendeeId,
+        });
+      }
 
-      if (response.status === "200") {
+      console.log("check-in response:", response);
+
+      if (response.status == undefined || response.status / 100 >= 4) {
+        const errorMessage = response?.detail || t("Check-in failed");
+        toast.error(errorMessage);
+      } else {
         toast.success(t("Check-in successful!"));
         setCheckInCode("");
         setAttendeeId("");
-      } else {
-        const errorMessage = response?.detail || t("Check-in failed");
-        toast.error(errorMessage);
       }
     } catch (err: any) {
       const errorMessage =
@@ -57,6 +71,13 @@ export default function CheckInSection({
       setSubmitting(false);
     }
   };
+
+  const isCheckInOpen = () => {
+    const now = new Date();
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    return now >= start && now <= end;
+  }
 
   return (
     <motion.div
@@ -94,12 +115,13 @@ export default function CheckInSection({
           type="text"
           value={checkInCode}
           onChange={(e) => setCheckInCode(e.target.value)}
-          placeholder={t("Enter code (e.g., 999999)")}
+          placeholder={isCheckInOpen() ? t("Enter code (e.g., 999999)") : t("Check-in is not open")}
+          disabled={!isCheckInOpen()}
           className="w-full px-5 py-4 border-2 border-green-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg font-mono bg-white"
         />
         <button
           onClick={handleCheckIn}
-          disabled={submitting}
+          disabled={submitting || !isCheckInOpen()}
           className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
         >
           {submitting ? (
