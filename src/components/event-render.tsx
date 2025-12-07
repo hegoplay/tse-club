@@ -35,7 +35,6 @@ export default function EventRender({
     minutes: 0,
     seconds: 0,
   });
-  const [isRegisteredHovering, setIsRegisteredHovering] = useState(false);
   const [userStatus, setUserStatus] = useState<string>("");
   const [eventData, setEventData] = useState(initialEventData);
   const [isRefetching, setIsRefetching] = useState(false);
@@ -323,7 +322,7 @@ export default function EventRender({
       );
     }
 
-    if (isRegistrationFull()) {
+    if (isRegistrationFull() && eventData.userAsAttendee == null) {
       return (
         <button disabled className={`${common} bg-orange-500`}>
           {t("Registration full")}
@@ -713,6 +712,8 @@ export default function EventRender({
           eventId={id}
           userAsAttendee={userAsAttendee}
           isLoggedIn={isLoggedIn}
+          startTime={location?.startTime}
+          endTime={location?.endTime}
         />
         <ReviewSection eventId={id} category={category} />
       </div>

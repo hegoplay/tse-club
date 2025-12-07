@@ -318,5 +318,6 @@
   "UNREGISTER": "Hủy đăng ký",
   "UNREGISTERING": "Đang hủy đăng ký...",
   "UNREGISTER SUCCESS": "Hủy đăng ký thành công!",
-  "not available for multi events": "không khả dụng cho sự kiện nhiều phần"
+  "not available for multi events": "không khả dụng cho sự kiện nhiều phần",
+  "Check-in is not open": "Chưa mở check-in"
 }

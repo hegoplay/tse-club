@@ -71,11 +71,15 @@ export const getRegisteredEvents = (params?: {
   return response.then((res) => res._embedded ? res._embedded.eventWrapperDtoList : []);
 };
 
-export const selfCheckIn = (
+export const publicSelfCheckIn = (
   eventId: string,
   data: { code: string; attendeeId: string }
 ) =>
   http.post(`${API_PREFIX_PUBLIC_EVENT_PATH}/${eventId}/self-check-in`, data);
+
+export const selfCheckIn = (eventId: string, data: { code: string }) =>
+  http.post(`${API_PREFIX_EVENT_PATH}/${eventId}/self-check-in`, data);
+
 
 export const addReview = (eventId: string, review: string) =>
   http.post(`${API_PREFIX_EVENT_PATH}/seminar/${eventId}/add-review`, review);
