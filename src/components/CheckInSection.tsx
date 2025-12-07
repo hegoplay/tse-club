@@ -51,13 +51,15 @@ export default function CheckInSection({
         });
       }
 
-      if (response.status === "200") {
+      console.log("check-in response:", response);
+
+      if (response.status == undefined || response.status / 100 >= 4) {
+        const errorMessage = response?.detail || t("Check-in failed");
+        toast.error(errorMessage);
+      } else {
         toast.success(t("Check-in successful!"));
         setCheckInCode("");
         setAttendeeId("");
-      } else {
-        const errorMessage = response?.detail || t("Check-in failed");
-        toast.error(errorMessage);
       }
     } catch (err: any) {
       const errorMessage =
