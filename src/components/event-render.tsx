@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CalendarDays, MapPin, UserCheck, Users, X } from "lucide-react";
 import {
-  registerForEvent,
+  registerForEvent as triggerRegisterForEvent,
   registerForEventWithoutLogin,
   getEventPublicById,
 } from "@/modules/services/eventService";
@@ -17,6 +17,9 @@ import EventPostsSection from "./EventPostSection";
 import { formatAllowedParticipants } from "@/lib/allowedParticipantsUtils";
 import { Badge } from "antd";
 import { log } from "console";
+import { validateEmail } from "@/lib/utils";
+import { UserShortInfoResponseDto } from "@/constant/types";
+import RegisteredButton from "./events/buttons/registeredButton";
 
 interface EventRenderProps {
   eventData: any;
@@ -32,6 +35,7 @@ export default function EventRender({
     minutes: 0,
     seconds: 0,
   });
+  const [isRegisteredHovering, setIsRegisteredHovering] = useState(false);
   const [userStatus, setUserStatus] = useState<string>("");
   const [eventData, setEventData] = useState(initialEventData);
   const [isRefetching, setIsRefetching] = useState(false);
@@ -124,12 +128,13 @@ export default function EventRender({
   }, [location?.startTime]);
 
   useEffect(() => {
-    const user =
+    let user =
       typeof window !== "undefined" ? localStorage.getItem("user") : null;
     if (!user) {
       setUserStatus("guest");
       return;
     }
+    const userData = (JSON.parse(user) as UserShortInfoResponseDto);
 
     const fetchStatus = async () => {
       try {
@@ -146,6 +151,9 @@ export default function EventRender({
           userAsAttendee?.status === "CHECKED"
         )
           setUserStatus("checked");
+        else if (eventData.allowedType && !(eventData.allowedType & userData.type)) { 
+          setUserStatus("not_allowed");
+        }
         else setUserStatus("none");
       } catch (err) {
         console.error("Error checking user event status:", err);
@@ -203,11 +211,31 @@ export default function EventRender({
   const handleRegister = async () => {
     try {
       setLoading(true);
-      const res = await registerForEvent(id);
+      const res = await triggerRegisterForEvent(id);
       console.log("register response:", res);
       toast.success(t("Registration successful"));
       setUserStatus("registered");
       setCurrentRegistered((prev) => prev + 1);
+      const refreshedData = await getEventPublicById(id);
+      if (refreshedData) {
+        setEventData(refreshedData);
+      }
+
+    } catch {
+      toast.error(t("Registration failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUnregister = async () => {
+    try {
+      setLoading(true);
+      const res = await triggerRegisterForEvent(id);
+      console.log("unregister response:", res);
+      toast.success(t("Unregistration successful"));
+      setUserStatus("none");
+      setCurrentRegistered((prev) => prev - 1);
       const refreshedData = await getEventPublicById(id);
       if (refreshedData) {
         setEventData(refreshedData);
@@ -228,9 +256,18 @@ export default function EventRender({
       return;
     }
 
+    if (!validateEmail(email)) {
+      toast.error(t("Please enter a valid email address"));
+      return;
+    }
+
     try {
       setLoading(true);
-      await registerForEventWithoutLogin(id, guestFormData);
+      const res = await registerForEventWithoutLogin(id, guestFormData);
+      console.log("Guest register response:", res);
+      if (res?.status / 100 !== 2) {
+        throw new Error(res.detail || "Registration failed");
+      }
       toast.success(
         t("Registration successful! Please check your email for confirmation.")
       );
@@ -308,12 +345,13 @@ export default function EventRender({
           </button>
         );
       case "registered":
+        return (
+          <RegisteredButton handleUnregister={handleUnregister} common={common} />
+        );
       case "checked":
         return (
           <button disabled className={`${common} bg-blue-600`}>
-            {userStatus === "checked"
-              ? t("CHECKED_IN") || "Checked In"
-              : t("REGISTERED")}
+            {t("CHECKED_IN")}
           </button>
         );
       case "guest":
@@ -332,24 +370,23 @@ export default function EventRender({
             {t("LOGIN TO JOIN")}
           </button>
         );
+      case "not_allowed":
+        return (
+          <button
+            disabled
+            className={`${common} bg-black hover:opacity-80`}
+          >
+            {t("You are not allowed to register")}
+          </button>
+        )
       default:
-        return (eventData.allowedType & user?.type) ? (
+        return (
           <button
             onClick={handleRegister}
             disabled={loading}
             className={`${common} bg-black hover:opacity-80`}
           >
             {loading ? t("REGISTERING") : t("REGISTER NOW")}
-          </button>
-        )
-        :
-        (
-          <button
-            onClick={handleRegister}
-            disabled
-            className={`${common} bg-black hover:opacity-80`}
-          >
-            {t("You are not allowed to register")}
           </button>
         );
     }

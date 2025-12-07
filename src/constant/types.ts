@@ -1,5 +1,12 @@
 import { ChangeEvent } from "react";
 
+export enum UserRole {
+  ADMIN = "ADMIN",
+  LEADER = "LEADER",
+  MEMBER = "MEMBER",
+  NONE = "NONE"
+}
+
 export interface Book {
   import_price: string;
   book_images: {
@@ -552,3 +559,20 @@ export interface Member {
   nickname?: string | null;
   userUrl?: string;
 }
+
+export interface UserShortInfoResponseDto{
+    id: string;
+    username: string;
+    fullName?: string;
+    studentId?: string;
+    email: string;
+    dateOfBirth?: string;
+    nickname?: string;
+    role: UserRole;
+    userUrl: string;
+    attendancePoint: number;
+    contributionPoint: number;
+    disabled: boolean;
+    type: number;
+}
+
