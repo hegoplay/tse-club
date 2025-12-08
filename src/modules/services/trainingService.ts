@@ -59,12 +59,15 @@ export const searchMyTrainings = (params?: {
     })
     .then((res) => res._embedded?.trainingWrapperDtoList ?? []);
 
-export const getPublicTraining = (params?: SearchDto & {
-  keyword?: string;
-  status?: string;
-  startTime?: string;
-  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST";
-}) => {
+export const getPublicTraining = (
+  params?: SearchDto & {
+    keyword?: string;
+    status?: string;
+    startTime?: string;
+    endTime?: string;
+    rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST";
+  }
+) => {
   const res = http.get<any>(`${API_PREFIX_PUBLIC_TRAINING_PATH}/search`, {
     params,
   });

@@ -12,11 +12,28 @@ import dayjs from "dayjs";
 interface EventSectionProps {
   pageSize?: number;
   seeAll?: boolean;
-  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST"; //UPCOMING, ONGOING, PAST
+  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST";
   title: string;
+  keyword?: string;
+  category?: string;
+  eventType?: string;
+  startTime?: string;
+  endTime?: string;
+  sort?: string;
 }
 
-export default function EventSection({ pageSize, seeAll, rangeTimeType, title }: EventSectionProps) {
+export default function EventSection({
+  pageSize,
+  seeAll,
+  rangeTimeType,
+  title,
+  keyword,
+  category,
+  eventType,
+  startTime,
+  endTime,
+  sort,
+}: EventSectionProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const { t } = useTranslation("common");
@@ -27,7 +44,12 @@ export default function EventSection({ pageSize, seeAll, rangeTimeType, title }:
         const data = await getPublicEvents({
           size: pageSize,
           rangeTimeType: rangeTimeType,
-          sort: "location.startTime,asc",
+          sort: sort || "location.startTime,asc",
+          keyword: keyword,
+          category: category,
+          eventType: eventType,
+          startTime: startTime,
+          endTime: endTime,
         });
         setEvents(data);
       } catch (error) {

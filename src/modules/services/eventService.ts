@@ -41,6 +41,7 @@ export const getPublicEvents = (params?: {
   category?: string;
   startTime?: string;
   rangeTimeType?: string;
+  endTime?: string;
 }) => {
   const response = http.get(`${API_PREFIX_PUBLIC_EVENT_PATH}/search`, {
     params,
@@ -87,7 +88,9 @@ export const selfCheckIn = (eventId: string, data: { code: string }) =>
   http.post(`${API_PREFIX_EVENT_PATH}/${eventId}/self-check-in`, data);
 
 export const addReview = (eventId: string, review: string) =>
-  http.post(`${API_PREFIX_EVENT_PATH}/seminar/${eventId}/add-review`, {review: review});
+  http.post(`${API_PREFIX_EVENT_PATH}/seminar/${eventId}/add-review`, {
+    review: review,
+  });
 
 export const registerForEventWithoutLogin = (
   eventId: string,

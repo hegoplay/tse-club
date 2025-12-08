@@ -25,12 +25,16 @@ interface Training {
   currentRegistered: number;
 }
 
-
 interface TrainingSectionProps {
   pageSize?: number;
   seeAll?: boolean;
-  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST"; //UPCOMING, ONGOING, PAST
+  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST";
   title: string;
+  keyword?: string;
+  status?: string;
+  startTime?: string;
+  endTime?: string;
+  sort?: string;
 }
 
 export default function TrainingSection({
@@ -38,6 +42,11 @@ export default function TrainingSection({
   seeAll,
   rangeTimeType,
   title,
+  keyword,
+  status,
+  startTime,
+  endTime,
+  sort,
 }: TrainingSectionProps) {
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,7 +58,11 @@ export default function TrainingSection({
         const res = await getPublicTraining({
           size: pageSize,
           rangeTimeType: rangeTimeType,
-          sort: "location.startTime,asc",
+          sort: sort || "location.startTime,asc",
+          keyword: keyword,
+          status: status,
+          startTime: startTime,
+          endTime: endTime,
         });
         setTrainings(res || []);
       } catch (error) {
