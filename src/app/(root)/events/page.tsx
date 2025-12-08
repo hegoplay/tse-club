@@ -5,17 +5,22 @@ import { motion } from "framer-motion";
 import { Search, Filter, X, Calendar, ArrowUpDown } from "lucide-react";
 import EventSection from "@/components/EventSection";
 import TrainingSection from "@/components/TrainingSection";
+import { useTranslation } from "react-i18next";
 
 export default function EventPage() {
+  const { t } = useTranslation("common");
   const [showFilters, setShowFilters] = useState(false);
   const [activeTab, setActiveTab] = useState("events");
 
+  // Event filters
   const [eventKeyword, setEventKeyword] = useState("");
   const [eventCategory, setEventCategory] = useState("");
   const [eventType, setEventType] = useState("");
   const [eventStartDate, setEventStartDate] = useState("");
   const [eventEndDate, setEventEndDate] = useState("");
   const [eventSort, setEventSort] = useState("location.startTime,asc");
+
+  // Training filters
   const [trainingKeyword, setTrainingKeyword] = useState("");
   const [trainingStatus, setTrainingStatus] = useState("");
   const [trainingStartDate, setTrainingStartDate] = useState("");
@@ -33,16 +38,16 @@ export default function EventPage() {
   const trainingStatuses = ["ACCEPTED", "PENDING", "REJECTED"];
 
   const sortOptions = [
-    { label: "Title (A-Z)", value: "title,asc" },
-    { label: "Title (Z-A)", value: "title,desc" },
-    { label: "Start Time (Oldest)", value: "location.startTime,asc" },
-    { label: "Start Time (Newest)", value: "location.startTime,desc" },
-    { label: "Created Date (Oldest)", value: "createdAt,asc" },
-    { label: "Created Date (Newest)", value: "createdAt,desc" },
-    { label: "Last Modified Time (Oldest)", value: "lastModifiedTime,asc" },
-    { label: "Last Modified Time (Newest)", value: "lastModifiedTime,desc" },
-    { label: "Registration (Low to High)", value: "currentRegistered,asc" },
-    { label: "Registration (High to Low)", value: "currentRegistered,desc" },
+    { label: t("Title (A-Z)"), value: "title,asc" },
+    { label: t("Title (Z-A)"), value: "title,desc" },
+    { label: t("Start Time (Oldest)"), value: "location.startTime,asc" },
+    { label: t("Start Time (Newest)"), value: "location.startTime,desc" },
+    { label: t("Created Date (Oldest)"), value: "createdAt,asc" },
+    { label: t("Created Date (Newest)"), value: "createdAt,desc" },
+    { label: t("Last Modified Time (Oldest)"), value: "lastModifiedTime,asc" },
+    { label: t("Last Modified Time (Newest)"), value: "lastModifiedTime,desc" },
+    { label: t("Registration (Low to High)"), value: "currentRegistered,asc" },
+    { label: t("Registration (High to Low)"), value: "currentRegistered,desc" },
   ];
 
   const clearEventFilters = () => {
@@ -88,7 +93,7 @@ export default function EventPage() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-4xl md:text-6xl font-bold leading-tight mb-4"
           >
-            Explore Events & Trainings
+            {t("Explore Events & Trainings")}
           </motion.h1>
 
           <motion.p
@@ -97,7 +102,7 @@ export default function EventPage() {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="text-lg md:text-xl mt-4 opacity-90 px-2 md:px-0"
           >
-            Stay updated with our club's latest happenings and workshops
+            {t("Stay updated with our club's latest happenings and workshops")}
           </motion.p>
         </div>
 
@@ -126,7 +131,7 @@ export default function EventPage() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              Events
+              {t("Events")}
             </button>
             <button
               onClick={() => setActiveTab("trainings")}
@@ -136,7 +141,7 @@ export default function EventPage() {
                   : "bg-gray-100 text-gray-700 hover:bg-gray-200"
               }`}
             >
-              Trainings
+              {t("Trainings")}
             </button>
           </div>
 
@@ -144,7 +149,8 @@ export default function EventPage() {
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Filter size={20} />
-              Filter & Sort {activeTab === "events" ? "Events" : "Trainings"}
+              {t("Filter & Sort")}{" "}
+              {activeTab === "events" ? t("Events") : t("Trainings")}
             </h3>
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -153,12 +159,12 @@ export default function EventPage() {
               {showFilters ? (
                 <>
                   <X size={18} />
-                  Hide Filters
+                  {t("Hide Filters")}
                 </>
               ) : (
                 <>
                   <Filter size={18} />
-                  Show Filters
+                  {t("Show Filters")}
                 </>
               )}
             </button>
@@ -175,7 +181,7 @@ export default function EventPage() {
               {/* Search by keyword */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Events
+                  {t("Search Events")}
                 </label>
                 <div className="relative">
                   <Search
@@ -184,7 +190,7 @@ export default function EventPage() {
                   />
                   <input
                     type="text"
-                    placeholder="Search by title, description..."
+                    placeholder={t("Search by title, description...")}
                     value={eventKeyword}
                     onChange={(e) => setEventKeyword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
@@ -196,14 +202,14 @@ export default function EventPage() {
                 {/* Category filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
+                    {t("Category")}
                   </label>
                   <select
                     value={eventCategory}
                     onChange={(e) => setEventCategory(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                   >
-                    <option value="">All Categories</option>
+                    <option value="">{t("All Categories")}</option>
                     {eventCategories.map((cat) => (
                       <option key={cat} value={cat}>
                         {cat}
@@ -215,14 +221,14 @@ export default function EventPage() {
                 {/* Event Type filter */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Event Type
+                    {t("Event Type")}
                   </label>
                   <select
                     value={eventType}
                     onChange={(e) => setEventType(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white"
                   >
-                    <option value="">All Types</option>
+                    <option value="">{t("All Types")}</option>
                     {eventTypes.map((type) => (
                       <option key={type} value={type}>
                         {type}
@@ -236,12 +242,12 @@ export default function EventPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Calendar size={16} />
-                  Date Range
+                  {t("Date Range")}
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">
-                      Start Date
+                      {t("Start Date")}
                     </label>
                     <input
                       type="date"
@@ -252,7 +258,7 @@ export default function EventPage() {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">
-                      End Date
+                      {t("End Date")}
                     </label>
                     <input
                       type="date"
@@ -268,7 +274,7 @@ export default function EventPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <ArrowUpDown size={16} />
-                  Sort By
+                  {t("Sort By")}
                 </label>
                 <select
                   value={eventSort}
@@ -289,7 +295,7 @@ export default function EventPage() {
                   onClick={clearEventFilters}
                   className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-medium transition-colors"
                 >
-                  Clear All Filters
+                  {t("Clear All Filters")}
                 </button>
               </div>
             </motion.div>
@@ -306,7 +312,7 @@ export default function EventPage() {
               {/* Search by keyword */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Search Trainings
+                  {t("Search Trainings")}
                 </label>
                 <div className="relative">
                   <Search
@@ -315,7 +321,7 @@ export default function EventPage() {
                   />
                   <input
                     type="text"
-                    placeholder="Search by title, instructor..."
+                    placeholder={t("Search by title, instructor...")}
                     value={trainingKeyword}
                     onChange={(e) => setTrainingKeyword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
@@ -326,17 +332,17 @@ export default function EventPage() {
               {/* Status filter */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Status
+                  {t("Status")}
                 </label>
                 <select
                   value={trainingStatus}
                   onChange={(e) => setTrainingStatus(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none bg-white"
                 >
-                  <option value="">All Statuses</option>
+                  <option value="">{t("All Statuses")}</option>
                   {trainingStatuses.map((status) => (
                     <option key={status} value={status}>
-                      {status}
+                      {t(status)}
                     </option>
                   ))}
                 </select>
@@ -346,12 +352,12 @@ export default function EventPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <Calendar size={16} />
-                  Date Range
+                  {t("Date Range")}
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">
-                      Start Date
+                      {t("Start Date")}
                     </label>
                     <input
                       type="date"
@@ -362,7 +368,7 @@ export default function EventPage() {
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">
-                      End Date
+                      {t("End Date")}
                     </label>
                     <input
                       type="date"
@@ -378,7 +384,7 @@ export default function EventPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <ArrowUpDown size={16} />
-                  Sort By
+                  {t("Sort By")}
                 </label>
                 <select
                   value={trainingSort}
@@ -399,7 +405,7 @@ export default function EventPage() {
                   onClick={clearTrainingFilters}
                   className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-medium transition-colors"
                 >
-                  Clear All Filters
+                  {t("Clear All Filters")}
                 </button>
               </div>
             </motion.div>
@@ -419,12 +425,12 @@ export default function EventPage() {
                 trainingEndDate))) && (
             <div className="mt-4 pt-4 border-t">
               <p className="text-sm font-medium text-gray-700 mb-3">
-                Active Filters:
+                {t("Active Filters")}:
               </p>
               <div className="flex flex-wrap gap-2">
                 {activeTab === "events" && eventKeyword && (
                   <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    Search: {eventKeyword}
+                    {t("Search")}: {eventKeyword}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-blue-900"
@@ -434,7 +440,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "events" && eventCategory && (
                   <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    Category: {eventCategory}
+                    {t("Category")}: {eventCategory}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-blue-900"
@@ -444,7 +450,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "events" && eventType && (
                   <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    Type: {eventType}
+                    {t("Type")}: {eventType}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-blue-900"
@@ -454,7 +460,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "events" && eventStartDate && (
                   <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    From: {formatDateForDisplay(eventStartDate)}
+                    {t("From")}: {formatDateForDisplay(eventStartDate)}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-blue-900"
@@ -464,7 +470,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "events" && eventEndDate && (
                   <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    To: {formatDateForDisplay(eventEndDate)}
+                    {t("To")}: {formatDateForDisplay(eventEndDate)}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-blue-900"
@@ -474,7 +480,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "trainings" && trainingKeyword && (
                   <span className="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    Search: {trainingKeyword}
+                    {t("Search")}: {trainingKeyword}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-indigo-900"
@@ -484,7 +490,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "trainings" && trainingStatus && (
                   <span className="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    Status: {trainingStatus}
+                    {t("Status")}: {t(trainingStatus)}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-indigo-900"
@@ -494,7 +500,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "trainings" && trainingStartDate && (
                   <span className="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    From: {formatDateForDisplay(trainingStartDate)}
+                    {t("From")}: {formatDateForDisplay(trainingStartDate)}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-indigo-900"
@@ -504,7 +510,7 @@ export default function EventPage() {
                 )}
                 {activeTab === "trainings" && trainingEndDate && (
                   <span className="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full text-sm flex items-center gap-2 font-medium">
-                    To: {formatDateForDisplay(trainingEndDate)}
+                    {t("To")}: {formatDateForDisplay(trainingEndDate)}
                     <X
                       size={14}
                       className="cursor-pointer hover:text-indigo-900"
@@ -524,7 +530,7 @@ export default function EventPage() {
           <EventSection
             pageSize={9}
             rangeTimeType="UPCOMING"
-            title="Upcoming Events"
+            title={t("Upcoming events")}
             keyword={eventKeyword}
             category={eventCategory}
             startTime={eventStartDate}
@@ -534,7 +540,7 @@ export default function EventPage() {
           <EventSection
             pageSize={9}
             rangeTimeType="ONGOING"
-            title="Ongoing Events"
+            title={t("Ongoing events")}
             keyword={eventKeyword}
             category={eventCategory}
             startTime={eventStartDate}
@@ -544,7 +550,7 @@ export default function EventPage() {
           <EventSection
             pageSize={9}
             rangeTimeType="PAST"
-            title="Past Events"
+            title={t("Past events")}
             keyword={eventKeyword}
             category={eventCategory}
             startTime={eventStartDate}
@@ -557,7 +563,7 @@ export default function EventPage() {
           <TrainingSection
             pageSize={9}
             rangeTimeType="UPCOMING"
-            title="Upcoming Trainings"
+            title={t("Upcoming trainings")}
             keyword={trainingKeyword}
             status={trainingStatus}
             startTime={trainingStartDate}
@@ -567,7 +573,7 @@ export default function EventPage() {
           <TrainingSection
             pageSize={9}
             rangeTimeType="ONGOING"
-            title="Ongoing Trainings"
+            title={t("Ongoing trainings")}
             keyword={trainingKeyword}
             status={trainingStatus}
             startTime={trainingStartDate}
@@ -577,7 +583,7 @@ export default function EventPage() {
           <TrainingSection
             pageSize={9}
             rangeTimeType="PAST"
-            title="Past Trainings"
+            title={t("Past trainings")}
             keyword={trainingKeyword}
             status={trainingStatus}
             startTime={trainingStartDate}

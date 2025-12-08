@@ -319,5 +319,34 @@
   "UNREGISTERING": "Đang hủy đăng ký...",
   "UNREGISTER SUCCESS": "Hủy đăng ký thành công!",
   "not available for multi events": "không khả dụng cho sự kiện nhiều phần",
-  "Check-in is not open": "Chưa mở check-in"
+  "Check-in is not open": "Chưa mở check-in",
+  
+    "Explore Events & Trainings": "Khám phá Sự kiện & Khóa học",
+    "Stay updated with our club's latest happenings and workshops": "Cập nhật những hoạt động và workshop mới nhất của câu lạc bộ",
+    "Trainings": "Khóa học",
+    "Filter & Sort": "Lọc & Sắp xếp",
+    "Hide Filters": "Ẩn bộ lọc",
+    "Show Filters": "Hiện bộ lọc",
+    "Search Events": "Tìm kiếm sự kiện",
+    "Search Trainings": "Tìm kiếm khóa học",
+    "Search by title, description...": "Tìm theo tiêu đề, mô tả...",
+    "Search by title, instructor...": "Tìm theo tiêu đề, giảng viên...",
+    "All Categories": "Tất cả danh mục",
+    "All Types": "Tất cả loại",
+    "All Statuses": "Tất cả trạng thái",
+    "Start Date": "Ngày bắt đầu",
+    "End Date": "Ngày kết thúc",
+    "Sort By": "Sắp xếp theo",
+    "Clear All Filters": "Xóa tất cả bộ lọc",
+    
+    "Last Modified Time (Oldest)": "Lần sửa cuối (Cũ nhất)",
+    "Last Modified Time (Newest)": "Lần sửa cuối (Mới nhất)",
+    "Active Filters": "Bộ lọc đang áp dụng",
+    "Type": "Loại",
+    "From": "Từ",
+    "To": "Đến",
+
+    "ACCEPTED": "Đã chấp nhận",
+    "REJECTED": "Đã từ chối"
+  
 }
