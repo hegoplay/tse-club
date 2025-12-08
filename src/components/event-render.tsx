@@ -715,7 +715,7 @@ export default function EventRender({
           startTime={location?.startTime}
           endTime={location?.endTime}
         />
-        <ReviewSection eventId={id} category={category} />
+        <ReviewSection eventId={id} category={category} userAsAttendee={userAsAttendee} />
       </div>
 
       {/* Event Posts Section */}
