@@ -6,15 +6,18 @@ import { Star } from "lucide-react";
 import { addReview } from "@/modules/services/eventService";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { AttendeeDto, AttendeeStatus, UserShortInfoResponseDto } from "@/constant/types";
 
 interface ReviewSectionProps {
   eventId: string;
   category: string;
+  userAsAttendee?: AttendeeDto | null;
 }
 
 export default function ReviewSection({
   eventId,
   category,
+  userAsAttendee,
 }: ReviewSectionProps) {
   const { t } = useTranslation("common");
   const [review, setReview] = useState("");
@@ -36,6 +39,11 @@ export default function ReviewSection({
       setSubmitting(false);
     }
   };
+
+  const ableToReview =
+    userAsAttendee && userAsAttendee.status === AttendeeStatus.CHECKED;
+
+  console.log("userAsAttendee", userAsAttendee);
 
   if (category !== "SEMINAR") return null;
 
@@ -65,10 +73,11 @@ export default function ReviewSection({
           onChange={(e) => setReview(e.target.value)}
           placeholder={t("Write your review...")}
           className="w-full px-5 py-4 border-2 border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent min-h-[140px] resize-none bg-white"
+          disabled={submitting || !ableToReview}
         />
         <button
           onClick={handleSubmitReview}
-          disabled={submitting}
+          disabled={submitting || !ableToReview}
           className="bg-gradient-to-r from-amber-500 to-orange-600 text-white px-6 py-4 rounded-xl font-semibold hover:from-amber-600 hover:to-orange-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
         >
           {submitting ? (
@@ -92,7 +101,7 @@ export default function ReviewSection({
               {t("SUBMITTING") || "Submitting..."}
             </span>
           ) : (
-            t("SUBMIT_REVIEW") || "Submit Review"
+            t("Submit Review")
           )}
         </button>
       </div>

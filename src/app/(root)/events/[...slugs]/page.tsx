@@ -12,7 +12,7 @@ const Page = async (props: {
 
   console.log("Event Data:", res);
 
-  return <EventRender eventData={res || undefined} />;
+  return <EventRender eventData={res || undefined}  />;
 };
 
 export async function generateMetadata(context: {

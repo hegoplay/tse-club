@@ -7,6 +7,12 @@ export enum UserRole {
   NONE = "NONE"
 }
 
+export enum AttendeeStatus{
+  REGISTERED = "REGISTERED",
+  CHECKED = "CHECKED",
+  BANNED = "BANNED",
+}
+
 export interface Book {
   import_price: string;
   book_images: {
@@ -524,6 +530,17 @@ export interface Event {
   allowedArray?: number[];
   currentRegistered?: number;
 }
+
+export interface AttendeeDto{
+  id: string;
+  fullName?: string;
+  nickname?: string;
+  email?: string;
+  dateOfBirth?: string;
+  status: AttendeeStatus;
+  user?: UserShortInfoResponseDto;
+}
+
 export interface Location {
   destination: string;
   startTime: string;

@@ -87,7 +87,7 @@ export const selfCheckIn = (eventId: string, data: { code: string }) =>
   http.post(`${API_PREFIX_EVENT_PATH}/${eventId}/self-check-in`, data);
 
 export const addReview = (eventId: string, review: string) =>
-  http.post(`${API_PREFIX_EVENT_PATH}/seminar/${eventId}/add-review`, review);
+  http.post(`${API_PREFIX_EVENT_PATH}/seminar/${eventId}/add-review`, {review: review});
 
 export const registerForEventWithoutLogin = (
   eventId: string,
