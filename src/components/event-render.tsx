@@ -264,7 +264,7 @@ export default function EventRender({
       setLoading(true);
       const res = await registerForEventWithoutLogin(id, guestFormData);
       console.log("Guest register response:", res);
-      if (res?.status / 100 !== 2) {
+      if (res?.detail) {
         throw new Error(res.detail || "Registration failed");
       }
       toast.success(
