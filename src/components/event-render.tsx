@@ -103,7 +103,11 @@ export default function EventRender({
 
   useEffect(() => {
     if (!location?.startTime) return;
-    const start = new Date(location.startTime).getTime();
+    let start = new Date(location.startTime).getTime();
+
+    if (start < Date.now()) {
+      start = new Date(location.endTime).getTime();
+    }
 
     const timer = setInterval(() => {
       const now = Date.now();
@@ -292,6 +296,7 @@ export default function EventRender({
     hour: "2-digit",
     minute: "2-digit",
   });
+  
 
   const endTime = new Date(location?.endTime).toLocaleString("vi-VN", {
     day: "2-digit",
@@ -390,6 +395,45 @@ export default function EventRender({
         );
     }
   };
+
+  const afterStartTime = () => {
+    const now = Date.now();
+    return now >= new Date(location?.startTime).getTime();
+  };
+
+  const mapperBgEventStatusColor = () => {
+    if (done) return "bg-green-500";
+    if (afterStartTime()) return "bg-green-500";
+    return "bg-yellow-400 text-gray-900";
+  };
+  
+  const renderUpcomingTimeCounter = () => {
+    return (
+      <>
+        <p className="text-sm opacity-80 mb-2">{ afterStartTime() ? t("ENDED IN") : t("STARTS IN")}</p>
+        <p className="text-3xl font-bold mb-4">
+          {countdown.days} <span className="text-lg">{t("DAYS")}</span>
+        </p>
+        <div className="flex justify-center gap-1">
+          <FlipNumbers
+            height={20}
+            width={18}
+            color="white"
+            background="rgba(255,255,255,0.1)"
+            play
+            perspective={200}
+            numbers={`${String(countdown.hours).padStart(
+              2,
+              "0"
+            )}:${String(countdown.minutes).padStart(2, "0")}:${String(
+              countdown.seconds
+            ).padStart(2, "0")}`}
+          />
+        </div>
+      </>
+    )
+  };
+
 
   return (
     <div className="min-h-[700px] flex flex-col">
@@ -549,33 +593,14 @@ export default function EventRender({
             <p className="text-2xl font-bold mb-2">{category || "Event"}</p>
             <p
               className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${
-                done ? "bg-green-500" : "bg-yellow-400 text-gray-900"
+                mapperBgEventStatusColor()
               }`}
             >
-              {done ? t("FINISHED") : t("UPCOMING")}
+              {done ? t("FINISHED") : afterStartTime() ? t("ONGOING") : t("UPCOMING")}
             </p>
 
             <div className="mt-8 text-center w-full bg-white/10 backdrop-blur-sm rounded-2xl p-6">
-              <p className="text-sm opacity-80 mb-2">{t("STARTS IN")}</p>
-              <p className="text-3xl font-bold mb-4">
-                {countdown.days} <span className="text-lg">{t("DAYS")}</span>
-              </p>
-              <div className="flex justify-center gap-1">
-                <FlipNumbers
-                  height={20}
-                  width={18}
-                  color="white"
-                  background="rgba(255,255,255,0.1)"
-                  play
-                  perspective={200}
-                  numbers={`${String(countdown.hours).padStart(
-                    2,
-                    "0"
-                  )}:${String(countdown.minutes).padStart(2, "0")}:${String(
-                    countdown.seconds
-                  ).padStart(2, "0")}`}
-                />
-              </div>
+              {renderUpcomingTimeCounter()}
             </div>
           </div>
 
