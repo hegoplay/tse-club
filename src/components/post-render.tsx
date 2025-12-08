@@ -195,7 +195,7 @@ const PostRender = ({
               <img
                 src={pageData?.featureImageUrl}
                 alt=""
-                className="w-full sm:h-[499px] h-[228px] sm:rounded-2xl object-cover"
+                className="w-full sm:rounded-2xl object-cover"
               />
               <NormalContent
                 content={normalContent ?? ""}
