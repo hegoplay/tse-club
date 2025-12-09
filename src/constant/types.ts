@@ -4,10 +4,10 @@ export enum UserRole {
   ADMIN = "ADMIN",
   LEADER = "LEADER",
   MEMBER = "MEMBER",
-  NONE = "NONE"
+  NONE = "NONE",
 }
 
-export enum AttendeeStatus{
+export enum AttendeeStatus {
   REGISTERED = "REGISTERED",
   CHECKED = "CHECKED",
   BANNED = "BANNED",
@@ -476,7 +476,7 @@ export interface Post {
 export interface Comment {
   id?: string;
   content: string;
-  commenter?: User;
+  commenter?: Member;
   commentTime?: string;
 }
 
@@ -543,7 +543,7 @@ export interface Event {
   currentRegistered?: number;
 }
 
-export interface AttendeeDto{
+export interface AttendeeDto {
   id: string;
   fullName?: string;
   nickname?: string;
@@ -591,23 +591,21 @@ export interface Member {
   userUrl?: string;
 }
 
-export interface UserShortInfoResponseDto{
-    id: string;
-    username: string;
-    fullName?: string;
-    studentId?: string;
-    email: string;
-    dateOfBirth?: string;
-    nickname?: string;
-    role: UserRole;
-    userUrl: string;
-    attendancePoint: number;
-    contributionPoint: number;
-    disabled: boolean;
-    type: number;
+export interface UserShortInfoResponseDto {
+  id: string;
+  username: string;
+  fullName?: string;
+  studentId?: string;
+  email: string;
+  dateOfBirth?: string;
+  nickname?: string;
+  role: UserRole;
+  userUrl: string;
+  attendancePoint: number;
+  contributionPoint: number;
+  disabled: boolean;
+  type: number;
 }
-
-
 export interface PageWrapperDto {
     _embedded: any;
     _links: {
@@ -659,3 +657,4 @@ export interface TrainingSearchRequestDto extends SearchDto {
   endTime?: string;
   rangeTimeType?: RangeTimeType;
 }
+

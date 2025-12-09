@@ -9,7 +9,7 @@ const BASE_URL =
 
 const http = new HttpClient(BASE_URL);
 
-interface SearchDto{
+interface SearchDto {
   page?: number;
   size?: number;
   sort?: string;
@@ -63,12 +63,37 @@ export const updatePost = (id: string, data: Partial<Post>) =>
 export const deletePost = (id: string) =>
   http.post<PostResponse>(`${API_PREFIX_POST_PATH}/deletepost/${id}`);
 
-export const getPublicPost = async (params?: SearchDto & {
-  title?: string;
-  status?: string;
-}) => {
+export const getPublicPost = async (
+  params?: SearchDto & {
+    title?: string;
+    status?: string;
+  }
+) => {
   const response = await http.get(`${API_PREFIX_PUBLIC_POST_PATH}/search`, {
     params,
   });
+  return response;
+};
+
+export const createComment = async (postId: string, content: string) => {
+  const response = await http.post(`${API_PREFIX_POST_PATH}/comment`, {
+    content,
+    postId,
+  });
+  return response;
+};
+
+export const updateComment = async (commentId: string, content: string) => {
+  const response = await http.put(
+    `${API_PREFIX_POST_PATH}/comment/${commentId}`,
+    { content }
+  );
+  return response;
+};
+
+export const deleteComment = async (commentId: string) => {
+  const response = await http.delete(
+    `${API_PREFIX_POST_PATH}/comment/${commentId}`
+  );
   return response;
 };

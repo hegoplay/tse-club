@@ -94,7 +94,7 @@ export default function EventRender({
     limitRegister,
     registrationDeadline,
     allowedType,
-    single
+    single,
   } = eventData;
 
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function EventRender({
       setUserStatus("guest");
       return;
     }
-    const userData = (JSON.parse(user) as UserShortInfoResponseDto);
+    const userData = JSON.parse(user) as UserShortInfoResponseDto;
 
     const fetchStatus = async () => {
       try {
@@ -154,17 +154,18 @@ export default function EventRender({
           userAsAttendee?.status === "CHECKED"
         )
           setUserStatus("checked");
-        else if (eventData.allowedType && !(eventData.allowedType & userData.type)) { 
+        else if (
+          eventData.allowedType &&
+          !(eventData.allowedType & userData.type)
+        ) {
           setUserStatus("not_allowed");
-        }
-        else setUserStatus("none");
+        } else setUserStatus("none");
       } catch (err) {
         console.error("Error checking user event status:", err);
       }
     };
     fetchStatus();
   }, [id, isHost, userAsOrganizer, userAttendeeStatus, userAsAttendee]);
-
 
   const getBadge = (key: string, value: string) => {
     return (
@@ -180,20 +181,23 @@ export default function EventRender({
         className="text-sm px-3 py-1"
       />
     );
-  }
+  };
 
   const generateUserTypeBadge = (type: number) => {
     const keys = ["student", "member", "teacher", "admin"];
-    const values = ["Sinh viên", "Thành viên CLB", "Giảng viên", "Quản trị viên"];
+    const values = [
+      "Sinh viên",
+      "Thành viên CLB",
+      "Giảng viên",
+      "Quản trị viên",
+    ];
     let badges = [];
     for (let i = 0; i < keys.length; i++) {
       if ((type & (1 << i)) === 0) continue;
-        badges.push(getBadge(keys[i], values[i]));
+      badges.push(getBadge(keys[i], values[i]));
     }
-    return <>
-      {badges.map((badge) => badge)}
-    </>
-  }
+    return <>{badges.map((badge) => badge)}</>;
+  };
 
   const isRegistrationClosed = () => {
     if (registrationDeadline) {
@@ -207,9 +211,9 @@ export default function EventRender({
     return limitRegister && currentRegistered >= limitRegister;
   };
 
-  const isSingleEvent = () =>{
+  const isSingleEvent = () => {
     return single;
-  }
+  };
 
   const handleRegister = async () => {
     try {
@@ -223,7 +227,6 @@ export default function EventRender({
       if (refreshedData) {
         setEventData(refreshedData);
       }
-
     } catch {
       toast.error(t("Registration failed"));
     } finally {
@@ -243,7 +246,6 @@ export default function EventRender({
       if (refreshedData) {
         setEventData(refreshedData);
       }
-
     } catch {
       toast.error(t("Registration failed"));
     } finally {
@@ -308,11 +310,13 @@ export default function EventRender({
 
   const renderButton = () => {
     const user =
-      typeof window !== "undefined" ? JSON.parse(localStorage.getItem("user") || "{}") : null;
+      typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("user") || "{}")
+        : null;
     // console.log("allowedType", allowedType, "user.type", user?.type);
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
-    if (!isSingleEvent()){
+    if (!isSingleEvent()) {
       return (
         <button disabled className={`${common} bg-gray-500`}>
           {t("not available for multi events")}
@@ -350,7 +354,10 @@ export default function EventRender({
         );
       case "registered":
         return (
-          <RegisteredButton handleUnregister={handleUnregister} common={common} />
+          <RegisteredButton
+            handleUnregister={handleUnregister}
+            common={common}
+          />
         );
       case "checked":
         return (
@@ -376,13 +383,10 @@ export default function EventRender({
         );
       case "not_allowed":
         return (
-          <button
-            disabled
-            className={`${common} bg-black hover:opacity-80`}
-          >
+          <button disabled className={`${common} bg-black hover:opacity-80`}>
             {t("You are not allowed to register")}
           </button>
-        )
+        );
       default:
         return (
           <button
@@ -406,11 +410,13 @@ export default function EventRender({
     if (afterStartTime()) return "bg-green-500";
     return "bg-yellow-400 text-gray-900";
   };
-  
+
   const renderUpcomingTimeCounter = () => {
     return (
       <>
-        <p className="text-sm opacity-80 mb-2">{ afterStartTime() ? t("ENDED IN") : t("STARTS IN")}</p>
+        <p className="text-sm opacity-80 mb-2">
+          {afterStartTime() ? t("ENDED IN") : t("STARTS IN")}
+        </p>
         <p className="text-3xl font-bold mb-4">
           {countdown.days} <span className="text-lg">{t("DAYS")}</span>
         </p>
@@ -422,18 +428,14 @@ export default function EventRender({
             background="rgba(255,255,255,0.1)"
             play
             perspective={200}
-            numbers={`${String(countdown.hours).padStart(
-              2,
-              "0"
-            )}:${String(countdown.minutes).padStart(2, "0")}:${String(
-              countdown.seconds
-            ).padStart(2, "0")}`}
+            numbers={`${String(countdown.hours).padStart(2, "0")}:${String(
+              countdown.minutes
+            ).padStart(2, "0")}:${String(countdown.seconds).padStart(2, "0")}`}
           />
         </div>
       </>
-    )
+    );
   };
-
 
   return (
     <div className="min-h-[700px] flex flex-col">
@@ -573,7 +575,6 @@ export default function EventRender({
         )}
       </AnimatePresence>
 
-      {/* Main Event Card */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -581,7 +582,6 @@ export default function EventRender({
         viewport={{ once: true }}
         className="bg-gradient-to-br from-white via-blue-50 to-purple-50 rounded-3xl shadow-xl p-6 md:p-10 overflow-hidden flex flex-col md:flex-row hover:shadow-2xl transition-all duration-300 mb-8 border border-gray-100"
       >
-        {/* Left Card */}
         <div className="md:w-1/3 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 text-white flex flex-col justify-between items-center p-8 rounded-3xl md:mr-8 mb-6 md:mb-0 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-16 -mt-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-5 rounded-full -ml-12 -mb-12"></div>
@@ -592,11 +592,15 @@ export default function EventRender({
             </div>
             <p className="text-2xl font-bold mb-2">{category || "Event"}</p>
             <p
-              className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${
-                mapperBgEventStatusColor()
-              }`}
+              className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${mapperBgEventStatusColor()}`}
+
             >
-              {done ? t("FINISHED") : afterStartTime() ? t("ONGOING") : t("UPCOMING")}
+
+              {done
+                ? t("FINISHED")
+                : afterStartTime()
+                ? t("ONGOING")
+                : t("UPCOMING")}
             </p>
 
             <div className="mt-8 text-center w-full bg-white/10 backdrop-blur-sm rounded-2xl p-6">
@@ -703,25 +707,23 @@ export default function EventRender({
                   </div>
                 </div>
               </div>
-              {
-                !isPublic && allowedType != 0 && 
-              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3">
-                  <div className="bg-teal-100 p-3 rounded-lg">
-                    <UserCheck className="w-5 h-5 text-teal-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">
-                      {t("user type allowed")}
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {generateUserTypeBadge(allowedType)}
-                    </p>
+              {!isPublic && allowedType != 0 && (
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-teal-100 p-3 rounded-lg">
+                      <UserCheck className="w-5 h-5 text-teal-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 font-medium">
+                        {t("user type allowed")}
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900">
+                        {generateUserTypeBadge(allowedType)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-              }
-
+              )}
             </div>
           </div>
 
@@ -740,7 +742,11 @@ export default function EventRender({
           startTime={location?.startTime}
           endTime={location?.endTime}
         />
-        <ReviewSection eventId={id} category={category} userAsAttendee={userAsAttendee} />
+        <ReviewSection
+          eventId={id}
+          category={category}
+          userAsAttendee={userAsAttendee}
+        />
       </div>
 
       {/* Event Posts Section */}
