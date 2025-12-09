@@ -23,6 +23,8 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { Comment, Member } from "@/constant/types";
+import { Modal, Popconfirm } from "antd";
+import LatestPost from "./LatestPost";
 
 interface PostRenderProps {
   pageData: any;
@@ -71,6 +73,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
         setCurrentUser(JSON.parse(user));
       }
     }
+    console.log("comments", pageData?.comments);
   }, []);
 
   useEffect(() => {
@@ -167,14 +170,6 @@ const PostRender = ({ pageData }: PostRenderProps) => {
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (
-      !confirm(
-        t("Are you sure you want to delete this comment?") ||
-          "Bạn có chắc chắn muốn xóa bình luận này?"
-      )
-    )
-      return;
-
     try {
       await deleteComment(commentId);
       setComments(comments.filter((c) => c.id !== commentId));
@@ -440,12 +435,9 @@ const PostRender = ({ pageData }: PostRenderProps) => {
                       className="flex gap-4 p-4 bg-gray-50 rounded-xl"
                     >
                       <img
-                        src={
-                          comment.commenter?.userUrl ||
-                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                            comment.commenter?.fullName || "User"
-                          )}`
-                        }
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          comment.commenter?.fullName || "User"
+                        )}`}
                         alt={comment.commenter?.fullName}
                         className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
                       />
@@ -471,14 +463,25 @@ const PostRender = ({ pageData }: PostRenderProps) => {
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
-                              <button
-                                onClick={() =>
+                              <Popconfirm
+                                title={t("Delete Comment")}
+                                description={
+                                  t(
+                                    "Are you sure you want to delete this comment?"
+                                  ) ||
+                                  "Bạn có chắc chắn muốn xóa bình luận này?"
+                                }
+                                onConfirm={() =>
                                   handleDeleteComment(comment.id || "")
                                 }
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                okText={t("Delete") || "Xóa"}
+                                cancelText={t("Cancel") || "Hủy"}
+                                okButtonProps={{ danger: true }}
                               >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                                <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </Popconfirm>
                             </div>
                           )}
                         </div>
@@ -525,6 +528,9 @@ const PostRender = ({ pageData }: PostRenderProps) => {
             </div>
           </article>
         </div>
+      </div>
+      <div className="max-w-[1400px] mx-auto">
+        <LatestPost />
       </div>
     </div>
   );
