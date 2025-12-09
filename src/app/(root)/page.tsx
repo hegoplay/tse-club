@@ -7,6 +7,7 @@ import { Image } from "antd";
 import { Code, Heart, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { RangeTimeType } from "@/constant/types";
 
 export default function HomePage() {
   const { t } = useTranslation("common");
@@ -245,7 +246,9 @@ export default function HomePage() {
         </div>
       </motion.section>
 
-      <EventSection pageSize={3} seeAll={true} title={t("Upcoming events")} rangeTimeType="UPCOMING" />
+      <EventSection pageSize={3} seeAll={true} title={t("Upcoming events")} eventSearchParams={{
+        rangeTimeType: RangeTimeType.UPCOMING
+      }}/>
     </section>
   );
 }

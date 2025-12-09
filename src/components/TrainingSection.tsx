@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Image, Spin } from "antd";
+import { Image, Spin, Table, TablePaginationConfig } from "antd";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { getPublicTraining } from "@/modules/services/trainingService";
 import { Images } from "@/constant/image";
 import dayjs from "dayjs";
+import { PageWrapperDto, RangeTimeType, TrainingSearchRequestDto, UserShortInfoResponseDto } from "@/constant/types";
+import { formatDate } from "@/lib/utils";
 
 interface Training {
   id: string;
@@ -18,61 +20,94 @@ interface Training {
     endTime: string;
   };
   status: string;
-  creator: {
-    fullName: string;
-  };
+  creator: UserShortInfoResponseDto;
   limitRegister: number;
   currentRegistered: number;
+  featuredImageUrl?: string;
+  deleted: boolean;
+  createdAt: string;
+  lastModifiedAt: string;
+  isPublic: boolean;
 }
 
 interface TrainingSectionProps {
   pageSize?: number;
-  seeAll?: boolean;
-  rangeTimeType?: "UPCOMING" | "ONGOING" | "PAST";
+  trainingSearchParams: TrainingSearchRequestDto
+  rangeTimeType?: RangeTimeType;
   title: string;
-  keyword?: string;
-  status?: string;
-  startTime?: string;
-  endTime?: string;
-  sort?: string;
 }
 
+
 export default function TrainingSection({
-  pageSize,
-  seeAll,
-  rangeTimeType,
+  pageSize = 10,
   title,
-  keyword,
-  status,
-  startTime,
-  endTime,
-  sort,
+  rangeTimeType,
+  trainingSearchParams,
 }: TrainingSectionProps) {
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0); // Bắt đầu từ trang 0 (API thường dùng)
+  const [totalTrainings, setTotalTrainings] = useState(0); // Tổng số đào tạo
+
   const { t } = useTranslation("common");
 
-  useEffect(() => {
-    async function fetchTrainings() {
+  const fetchTraining = async (page: number, size: number) => {
+      setLoading(true);
       try {
-        const res = await getPublicTraining({
-          size: pageSize,
-          rangeTimeType: rangeTimeType,
-          sort: sort || "location.startTime,asc",
-          keyword: keyword,
-          status: status,
-          startTime: startTime,
-          endTime: endTime,
+        const customedSearchValues = trainingSearchParams.searchValues?.map((value) =>
+          "*" + value.trim() + "*"
+        );
+        const data: PageWrapperDto = await getPublicTraining({
+          // Gửi thông tin phân trang lên API
+          page: page,
+          size: size,
+  
+          rangeTimeType: trainingSearchParams.rangeTimeType,
+          sort: trainingSearchParams.sort || "location.startTime,asc",
+          startTime: trainingSearchParams.startTime,
+          endTime: trainingSearchParams.endTime,
+          searchs: trainingSearchParams.searchs,
+          searchValues: customedSearchValues,
         });
-        setTrainings(res || []);
+  
+        setTrainings(data._embedded ? data._embedded.trainingWrapperDtoList : []); // Cập nhật dữ liệu đào tạo
+        console.log(data._embedded.trainingWrapperDtoList)
+        setTotalTrainings(data.page.totalElements); // Cập nhật tổng số lượng
+        setCurrentPage(data.page.number); // Đảm bảo trang hiện tại được đồng bộ với API (thường là number)
       } catch (error) {
         console.error("Failed to fetch public trainings:", error);
+        setTrainings([]); // Xóa dữ liệu nếu có lỗi
+        setTotalTrainings(0);
       } finally {
         setLoading(false);
       }
     }
-    fetchTrainings();
-  }, [pageSize]);
+
+  useEffect(() => {
+    setLoading(true); 
+
+    const handler = setTimeout(() => {
+      fetchTraining(0, pageSize);
+    }, 500); // Độ trễ 500ms
+    
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [pageSize, trainingSearchParams]);
+
+  // Hàm xử lý khi người dùng thay đổi trang
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    // Ant Design pagination.current là 1-indexed, API thường là 0-indexed.
+    const newPage = pagination.current! - 1;
+
+    // Kiểm tra xem pageSize có thay đổi không, mặc dù thường không thay đổi ở đây
+    const newPageSize = pagination.pageSize || pageSize;
+
+    // Chỉ fetch lại nếu trang hiện tại thay đổi
+    if (newPage !== currentPage || newPageSize !== pageSize) {
+      fetchTraining(newPage, newPageSize);
+    }
+  };
 
   if (loading) {
     return (
@@ -82,98 +117,92 @@ export default function TrainingSection({
     );
   }
 
-  return (
-    <section className="py-16 px-4 md:px-6 text-center">
-      <motion.h2
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        viewport={{ once: true }}
-        className="text-2xl md:text-4xl font-bold text-gray-900 mb-4"
-      >
-        {title}
-      </motion.h2>
-      <motion.p
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-        viewport={{ once: true }}
-        className="mb-12"
-      >
-        {t(
-          "Learn about running a successful and sustainable club, teaching programming, and much more with our free online courses."
-        )}
-      </motion.p>
-
-      {trainings.length === 0 ? (
-        <p className="text-gray-500 text-base">{t("No trainings available")}</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 w-full mx-auto">
-          {trainings.map((training, index) => (
-            <motion.div
-              key={training.id}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className={`${
-                ["bg-yellow-100", "bg-blue-100", "bg-rose-100"][index % 3]
-              } rounded-3xl p-6 md:p-8 text-left shadow-md hover:shadow-lg transition-all duration-300`}
+  const column = [
+      {
+        title: t("Title"),
+        dataIndex: "title",
+        key: "title",
+      },
+      {
+        title: t("Creator"),
+        dataIndex: "creator",
+        key: "creator",
+        render: (_: string, record: Training) => {
+          return <span>{record.creator?.fullName || t("Unknown Host")}</span>;
+        },
+      },
+      {
+        title: t("Start Time"),
+        dataIndex: "location.startTime",
+        key: "startTime",
+        render: (_: string, record: Training) => {
+          const date = formatDate(record.location.startTime);
+  
+          return (
+            <span className="text-sm text-gray-600">
+              {date.formattedDate} {date.formattedTime}
+            </span>
+          );
+        },
+      },
+      {
+        title: t("Attendees"),
+        dataIndex: "attendeeInfo",
+        key: "attendeeInfo",
+        render: (_: string, record: Training) => {
+          const fontColor =
+            record.limitRegister &&
+            record.currentRegistered! >= record.limitRegister
+              ? "text-red-500 font-semibold"
+              : "text-green-500 font-semibold";
+          return (
+            <span className={fontColor}>
+              {record.currentRegistered || 0}
+              {record.limitRegister
+                ? ` / ${record.limitRegister}`
+                : ` ${t("ENDED IN")}`}
+            </span>
+          );
+        },
+      },
+      {
+        title: "",
+        dataIndex: "action",
+        key: "action",
+        render: (_: string, record: Training) => {
+          return (
+            <Link
+              href={`/training/${record.id}`}
+              className="text-blue-500 hover:underline"
             >
-              <Image src={Images.javaCourse.src} />
-              <h3 className="text-xl md:text-2xl font-bold mb-3">
-                {training.title}
-              </h3>
+              {t("View Details")}
+            </Link>
+          );
+        },
+      },
+    ];
 
-              <p className="text-sm md:text-base font-medium text-gray-700 mb-2">
-                📍 {training.location?.destination || t("No location")}
-              </p>
+  return (
+   <section className="text-center mb-8">
+      <Table
+        title={() => {
+          return <h2 className="text-2xl font-bold text-left">{title}</h2>;
+        }}
+        columns={column}
+        dataSource={trainings}
+        // Cấu hình phân trang
+        pagination={{
+          current: currentPage + 1, // Ant Design dùng 1-indexed
+          pageSize: pageSize,
+          total: totalTrainings,
+          showSizeChanger: false, // Tùy chọn: Cho phép thay đổi kích thước trang
+        }}
+        onChange={handleTableChange} // Xử lý sự kiện thay đổi trang/kích thước trang
+        loading={loading} // Hiển thị trạng thái tải trong bảng
+        bordered={true}
+      />
 
-              <p className="text-sm text-gray-600 mb-1">
-                🕒 {t("From")}:{" "}
-                {new Date(training.location?.startTime).toLocaleDateString()}
-              </p>
-              <p className="text-sm text-gray-600 mb-3">
-                ⏰ {t("To")}:{" "}
-                {new Date(training.location?.endTime).toLocaleDateString()}
-              </p>
-
-              <p className="text-sm text-gray-700 mb-2">
-                👤 {t("Instructor")}: {training.creator?.fullName || "—"}
-              </p>
-
-              <p className="text-sm text-gray-700 mb-2">
-                🎯 {t("Registered")}: {training.currentRegistered || 0}/
-                {training.limitRegister}
-              </p>
-
-              <p
-                className={`text-sm font-semibold mb-3 ${
-                  training.status === "ACCEPTED"
-                    ? "text-green-600"
-                    : training.status === "PENDING"
-                    ? "text-yellow-600"
-                    : "text-gray-600"
-                }`}
-              >
-                {t("Status")}: {t(training.status)}
-              </p>
-
-              <Link href={`/training/${training.id}`}>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-3 bg-blue-500 text-white font-semibold px-5 py-2 rounded-full transition-all duration-300 ease-in-out hover:bg-indigo-600"
-                >
-                  {t("View details")}
-                </motion.button>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      )}
-
-      {!loading && trainings.length > 0 && seeAll && (
+      {/* {!loading && trainings.length > 0  && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -181,17 +210,19 @@ export default function TrainingSection({
           viewport={{ once: true }}
           className="mt-12"
         >
-          <Link href="/training">
+          <Link href="/events">
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{
+                scale: 1.05,
+              }}
               transition={{ duration: 0.3 }}
-              className="bg-blue-500 text-white rounded-full px-8 py-3 font-semibold transition-all duration-300 ease-in-out hover:bg-indigo-600"
+              className="bg-blue-500 text-white rounded-full px-8 py-3 font-semibold transition-all duration-500 ease-in-out hover:bg-gradient-to-r hover:from-blue-500 hover:via-indigo-500 hover:to-purple-500"
             >
-              {t("See all trainings")}
+              {t("See all events")}
             </motion.button>
           </Link>
         </motion.div>
-      )}
+      )} */}
     </section>
   );
 }

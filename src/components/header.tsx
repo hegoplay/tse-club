@@ -61,7 +61,7 @@ export default function Header() {
 
   useEffect(() => {
     const onScroll = () => {
-      setFixed(window.scrollY > 60);
+      setFixed(window.scrollY > 80);
     };
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
@@ -198,7 +198,7 @@ export default function Header() {
           display: "flex",
           alignItems: "center",
           height: 72,
-          boxShadow: fixed ? "0 2px 8px rgba(0,0,0,0.1)" : "none",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           transition: "all 0.3s",
         }}
       >

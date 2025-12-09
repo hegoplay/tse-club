@@ -13,6 +13,19 @@ export enum AttendeeStatus {
   BANNED = "BANNED",
 }
 
+export enum EventType{
+  ALL = "ALL",
+  SEMINAR = "SEMINAR",
+  CONTEST = "CONTEST",
+  SIMPLE = "SIMPLE",
+}
+
+export enum RangeTimeType{
+  UPCOMING = "UPCOMING",
+  ONGOING = "ONGOING",
+  PAST = "PAST",
+}
+
 export interface Book {
   import_price: string;
   book_images: {
@@ -521,7 +534,6 @@ export interface Event {
   organizers?: Organizer[];
   trainingId?: string;
   category?: string;
-  description?: string;
   host?: Member;
   limitRegister?: number;
   plans?: string;
@@ -594,3 +606,55 @@ export interface UserShortInfoResponseDto {
   disabled: boolean;
   type: number;
 }
+export interface PageWrapperDto {
+    _embedded: any;
+    _links: {
+        self: {
+            href: string;
+        };
+        first?: {
+            href: string;
+        };
+        last?: {
+            href: string;
+        };
+        next?: {
+            href: string;
+        };
+        prev?: {
+            href: string;
+        };
+    };
+    page: {
+        size: number;
+        totalElements: number;
+        totalPages: number;
+        number: number;
+    };
+}
+
+// search options
+
+export interface SearchDto{
+  page?: number;
+  size?: number;
+  sort?: string;
+  searchs?: string[];
+  searchValues?: string[];
+}
+
+export interface EventSearchRequestDto extends SearchDto {
+  isDone?: boolean;
+  eventType?: EventType;
+  keyword?: string;
+  startTime?: string;
+  endTime?: string;
+  rangeTimeType?: RangeTimeType;
+}
+
+export interface TrainingSearchRequestDto extends SearchDto {
+  startTime?: string;
+  endTime?: string;
+  rangeTimeType?: RangeTimeType;
+}
+

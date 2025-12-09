@@ -298,6 +298,7 @@ export default function EventRender({
     hour: "2-digit",
     minute: "2-digit",
   });
+  
 
   const endTime = new Date(location?.endTime).toLocaleString("vi-VN", {
     day: "2-digit",
@@ -592,7 +593,9 @@ export default function EventRender({
             <p className="text-2xl font-bold mb-2">{category || "Event"}</p>
             <p
               className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${mapperBgEventStatusColor()}`}
+
             >
+
               {done
                 ? t("FINISHED")
                 : afterStartTime()
