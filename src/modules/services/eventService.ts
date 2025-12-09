@@ -1,4 +1,4 @@
-import { Event, MediaData, MediaResponse } from "@/constant/types";
+import { Event, EventSearchRequestDto, MediaData, MediaResponse } from "@/constant/types";
 import { HttpClient } from "@/lib/HttpClient";
 import { isTokenExpired } from "@/lib/utils";
 
@@ -31,24 +31,11 @@ export const getEvents = (params?: {
   );
 };
 
-export const getPublicEvents = (params?: {
-  page?: number;
-  size?: number;
-  sort?: string;
-  eventType?: string;
-  isDone?: boolean;
-  keyword?: string;
-  category?: string;
-  startTime?: string;
-  rangeTimeType?: string;
-  endTime?: string;
-}) => {
+export const getPublicEvents = async (params?: EventSearchRequestDto) => {
   const response = http.get(`${API_PREFIX_PUBLIC_EVENT_PATH}/search`, {
     params,
   });
-  return response.then((res) =>
-    res._embedded ? res._embedded.eventWrapperDtoList : []
-  );
+  return response
 };
 
 export const getEventPublicById = (id: string) =>

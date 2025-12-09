@@ -59,7 +59,7 @@ export const searchMyTrainings = (params?: {
     })
     .then((res) => res._embedded?.trainingWrapperDtoList ?? []);
 
-export const getPublicTraining = (
+export const getPublicTraining = async (
   params?: SearchDto & {
     keyword?: string;
     status?: string;
@@ -71,7 +71,7 @@ export const getPublicTraining = (
   const res = http.get<any>(`${API_PREFIX_PUBLIC_TRAINING_PATH}/search`, {
     params,
   });
-  return res.then((res) => res._embedded?.trainingWrapperDtoList ?? []);
+  return res;
 };
 export const getPublicTrainingById = (trainingId: string) =>
   http.get<any>(`${API_PREFIX_PUBLIC_TRAINING_PATH}/${trainingId}`);
