@@ -51,17 +51,14 @@ export default function LatestPost() {
               className="rounded-3xl overflow-hidden flex flex-col shadow-sm transition-transform duration-200 hover:-translate-y-1"
               style={{ backgroundColor: bgColors[i % bgColors.length] }}
             >
-              {/* Hình ảnh */}
-              {post.featureImageUrl && (
-                <div className="relative">
-                  <Image
-                    src={post.featureImageUrl}
-                    alt={post.title || ""}
-                    preview={false}
-                    className="object-cover rounded-t-3xl"
-                  />
-                </div>
-              )}
+              <div className="relative">
+                <Image
+                  src={post.featureImageUrl || "/images/default-post.webp"}
+                  alt={post.title || ""}
+                  preview={false}
+                  className="object-cover rounded-t-3xl"
+                />
+              </div>
 
               {/* Nội dung */}
               <div className="flex flex-col text-left p-6 flex-grow">

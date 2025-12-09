@@ -33,7 +33,7 @@ interface PostRenderProps {
 const extractTableOfContents = (content: string) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(content, "text/html");
-  const headings = Array.from(doc.querySelectorAll("h2, h3, h4, h5"));
+  const headings = Array.from(doc.querySelectorAll("h1, h2, h3, h4, h5"));
 
   return headings.map((heading, index) => {
     const id = `section-${index}`;
@@ -82,7 +82,20 @@ const PostRender = ({ pageData }: PostRenderProps) => {
     const postContent = pageData?.content ?? "";
     const toc = extractTableOfContents(postContent);
 
-    setNormalContent(postContent);
+    let modifiedContent = postContent;
+    let index = 0;
+    modifiedContent = modifiedContent.replace(
+      /<(h[1-5])>/g,
+      (_match: any, tag: any) => {
+        const tocItem = toc[index] || { id: `section-${index}` };
+        index += 1;
+        return `<${tag} id="${tocItem.id}">`;
+      }
+    );
+
+    console.log("modifiedContent", modifiedContent);
+
+    setNormalContent(modifiedContent);
     setTableOfContents(toc);
     setComments(pageData?.comments || []);
   }, [pageData]);
@@ -119,7 +132,11 @@ const PostRender = ({ pageData }: PostRenderProps) => {
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      const yOffset = -100;
+      const y =
+        element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+
+      window.scrollTo({ top: y, behavior: "smooth" });
       setIsTOCOpen(false);
     }
   };
