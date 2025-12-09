@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { getPublicPost } from "@/modules/services/postService";
 import { Post } from "@/constant/types";
 import { Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { Image } from "antd";
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -84,8 +84,8 @@ export default function BlogPage() {
                       <Image
                         src={post.image}
                         alt={post.title || ""}
-                        fill
                         className="object-cover hover:scale-105 transition-transform duration-300"
+                        preview={false}
                       />
                     </div>
                   )}
@@ -105,9 +105,8 @@ export default function BlogPage() {
                   <Image
                     src={post.featureImageUrl || "/images/default-post.webp"}
                     alt={post.title || ""}
-                    width={400}
-                    height={200}
                     className="object-cover rounded-2xl mb-4 w-100 h-50"
+                    preview={false}
                   />
 
                   {/* 🔗 Read more */}

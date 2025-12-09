@@ -338,14 +338,12 @@
     "End Date": "Ngày kết thúc",
     "Sort By": "Sắp xếp theo",
     "Clear All Filters": "Xóa tất cả bộ lọc",
-    
     "Last Modified Time (Oldest)": "Lần sửa cuối (Cũ nhất)",
     "Last Modified Time (Newest)": "Lần sửa cuối (Mới nhất)",
     "Active Filters": "Bộ lọc đang áp dụng",
     "Type": "Loại",
     "From": "Từ",
     "To": "Đến",
-
     "ACCEPTED": "Đã chấp nhận",
     "REJECTED": "Đã từ chối",
     "ENDED IN": "Kết thúc trong"

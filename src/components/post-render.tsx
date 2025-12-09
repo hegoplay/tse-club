@@ -1,22 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import dayjs from "dayjs";
-import { Button, Spin } from "antd";
-import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
-import TableOfContents from "./table-of-content";
-import NormalContent from "./normal-content";
-import { Post } from "@/constant/types";
-import { getPosts, getPostsByCategory } from "@/modules/services/postService";
-import { tryParse } from "@/lib/helper";
-import PostItem from "./post-item";
-import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Calendar,
+  User,
+  Menu,
+  X,
+  ChevronRight,
+  MessageCircle,
+  Send,
+  Edit2,
+  Trash2,
+  Clock,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
+import {
+  createComment,
+  updateComment,
+  deleteComment,
+} from "@/modules/services/postService";
+import { toast } from "sonner";
+import Link from "next/link";
+import { Comment, Member } from "@/constant/types";
 
 interface PostRenderProps {
-  pageData?: Post;
-  hasBreadcrumb?: boolean;
-  isTemplate?: boolean;
+  pageData: any;
 }
 
 const extractTableOfContents = (content: string) => {
@@ -36,217 +45,485 @@ const extractTableOfContents = (content: string) => {
   });
 };
 
-const PostRender = ({
-  pageData,
-  hasBreadcrumb,
-  isTemplate,
-}: PostRenderProps) => {
-  const [loading, setLoading] = useState(true);
-  const [normalContent, setNormalContent] = useState<string>();
-  const [titleBlog, setTitleBlog] = useState<string>("");
-  const [updatedAtBlog, setUpdatedAtBlog] = useState<string>("");
-  const [excerpt, setExcerpt] = useState<string>();
-  const [tag, setTag] = useState<string>();
-  const [tableOfContents, setTableOfContents] = useState<
-    Array<{ id: string; title: string; level: number }>
-  >([]);
-  const [imageUrl, setImageUrl] = useState<string>();
-  const [isTOCOpen, setIsTOCOpen] = useState(false);
-  const [isTOCFixed, setIsTOCFixed] = useState(false);
-  const [dataRelatedPost, setDataRelatedPost] = useState<Post[]>();
+const PostRender = ({ pageData }: PostRenderProps) => {
   const { t } = useTranslation("common");
+  const [isTOCOpen, setIsTOCOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
+  const [scrollProgress, setScrollProgress] = useState(0);
 
-  const fetchData = async () => {
-    if (!pageData) return;
-
-    setLoading(true);
-
-    const post = pageData;
-    const contentRaw = tryParse(post?.content ?? "");
-    const postContent = post?.content ?? "";
-    const toc = extractTableOfContents(postContent);
-    const relatedPosts = await getPosts({ size: 4, page: 1 });
-    setDataRelatedPost(relatedPosts?.data || []);
-
-    setTitleBlog(post?.title ?? "");
-    setUpdatedAtBlog(post?.updated_at ?? "");
-    setExcerpt(post?.excerpt);
-    setImageUrl(post?.image);
-    setNormalContent(postContent);
-    setTableOfContents(toc);
-
-    setLoading(false);
-  };
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentUser, setCurrentUser] = useState<Member>();
+  const [tableOfContents, setTableOfContents] = useState<
+    { id: string; title: string; level: number }[]
+  >([]);
+  const [normalContent, setNormalContent] = useState("");
 
   useEffect(() => {
-    fetchData();
+    if (typeof window !== "undefined") {
+      const user = localStorage.getItem("user");
+      if (user) {
+        setIsLoggedIn(true);
+        setCurrentUser(JSON.parse(user));
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!pageData) return;
+
+    const postContent = pageData?.content ?? "";
+    const toc = extractTableOfContents(postContent);
+
+    setNormalContent(postContent);
+    setTableOfContents(toc);
+    setComments(pageData?.comments || []);
   }, [pageData]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const tocElement = document.getElementById("mobile-toc");
-      if (tocElement) {
-        const rect = tocElement.getBoundingClientRect();
-        setIsTOCFixed(rect.top <= 58);
+      const winScroll = document.documentElement.scrollTop;
+      const height =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      setScrollProgress(scrolled);
+
+      const sections = tableOfContents.map((item) =>
+        document.getElementById(item.id)
+      );
+      const current = sections.find((section) => {
+        if (section) {
+          const rect = section.getBoundingClientRect();
+          return rect.top >= 0 && rect.top <= 200;
+        }
+        return false;
+      });
+
+      if (current) {
+        setActiveSection(current.id);
       }
     };
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [tableOfContents]);
 
-  useEffect(() => {
-    if (isTOCOpen && isTOCFixed) {
-      document.body.classList.add("body-no-scroll");
-    } else {
-      document.body.classList.remove("body-no-scroll");
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      setIsTOCOpen(false);
     }
+  };
 
-    return () => {
-      document.body.classList.remove("body-no-scroll");
-    };
-  }, [isTOCOpen]);
+  const handlePostComment = async () => {
+    if (!newComment.trim()) return;
 
-  //if (loading) return <Spin />;
+    setIsSubmitting(true);
+    try {
+      const comment = await createComment(pageData.id, newComment);
+      setComments([comment, ...comments]);
+      setNewComment("");
+      toast.success(
+        t("Comment posted successfully") || "Đã đăng bình luận thành công"
+      );
+    } catch (error) {
+      toast.error(t("Failed to post comment") || "Không thể đăng bình luận");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditComment = async (commentId: string) => {
+    if (!editContent.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      await updateComment(commentId, editContent);
+      setComments(
+        comments.map((c) =>
+          c.id === commentId ? { ...c, content: editContent } : c
+        )
+      );
+      setEditingCommentId(null);
+      setEditContent("");
+      toast.success(
+        t("Comment updated successfully") || "Đã cập nhật bình luận thành công"
+      );
+    } catch (error) {
+      toast.error(
+        t("Failed to update comment") || "Không thể cập nhật bình luận"
+      );
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (
+      !confirm(
+        t("Are you sure you want to delete this comment?") ||
+          "Bạn có chắc chắn muốn xóa bình luận này?"
+      )
+    )
+      return;
+
+    try {
+      await deleteComment(commentId);
+      setComments(comments.filter((c) => c.id !== commentId));
+      toast.success(
+        t("Comment deleted successfully") || "Đã xóa bình luận thành công"
+      );
+    } catch (error) {
+      toast.error(t("Failed to delete comment") || "Không thể xóa bình luận");
+      console.error(error);
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString || "");
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return t("Just now") || "Vừa xong";
+    if (seconds < 3600)
+      return `${Math.floor(seconds / 60)} ${t("minutes ago") || "phút trước"}`;
+    if (seconds < 86400)
+      return `${Math.floor(seconds / 3600)} ${t("hours ago") || "giờ trước"}`;
+    return `${Math.floor(seconds / 86400)} ${t("days ago") || "ngày trước"}`;
+  };
+
+  const formatDate = (dateString: string | number | Date) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const isCommentOwner = (comment: Comment) => {
+    return currentUser && comment.commenter?.id === currentUser.id;
+  };
+
+  if (!pageData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">
+          {t("NO_EVENT_DATA") || "Không có dữ liệu"}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="pt-8 sm:pt-16 sm:px-0 relative w-full flex justify-center">
-        <div className="container flex flex-col gap-16 relative sm:pb-[2rem] pb-10 sm:px-[7.5rem]">
-          <div className="flex flex-col gap-6 items-start max-w-[1000px] relative lg:px-0 px-4">
-            <p className="px-2 py-1.5 rounded-lg bg-[#0B3D91] uppercase text-white font-semibold text-sm leading-4">
-              {tag}
-            </p>
-            <h1 className="text-[#242F3E] font-bold text-2xl md:text-5xl leading-10 md:leading-[56px]">
-              {titleBlog}
-            </h1>
-            <div
-              dangerouslySetInnerHTML={{ __html: excerpt || "" }}
-              className="text-xl font-normal text-[#4F4F4F]"
-            />
-            <div className="flex flex-row gap-16 items-center">
-              <div className="flex flex-col gap-1 items-start">
-                <p className="uppercase text-[#999999] font-normal text-sm">
-                  WRITTEN BY
-                </p>
-                <p className="text-[#242F3E] font-normal text-base">
-                  {pageData?.writer?.fullName}
-                </p>
-              </div>
-              <div className="flex flex-col gap-1 items-start">
-                <p className="uppercase text-[#999999] font-normal text-sm">
-                  PUBLISH ON
-                </p>
-                <p className="text-[#242F3E] font-normal text-base">
-                  {dayjs(pageData?.lastModifiedTime).format("MMM D, YYYY")}
-                </p>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Progress Bar */}
+      <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+        <div
+          className="h-full bg-gradient-to-r from-blue-600 to-purple-600 transition-all duration-300"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      {/* Hero Section */}
+      <div className="relative bg-gradient-to-br from-blue-600 to-purple-700 text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 md:pt-28 md:pb-16">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+            {pageData.title}
+          </h1>
+
+          <div className="flex flex-wrap gap-6 text-sm md:text-base">
+            <div className="flex items-center gap-2">
+              <User className="w-4 h-4" />
+              <span className="text-white/80">{t("Written by")}</span>
+              <span className="font-semibold">{pageData.writer?.fullName}</span>
             </div>
-          </div>
-
-          <div
-            id="mobile-toc"
-            className="flex flex-col sm:flex-row items-start gap-16 relative"
-          >
-            <div className="hidden sm:flex flex-col gap-6 sticky top-24  lg:px-0 px-4">
-              {tableOfContents.length > 0 && (
-                <div className="flex flex-col justify-center gap-4">
-                  <h2 className="sm:text-sm font-normal uppercase text-[#999999]">
-                    Table of contents
-                  </h2>
-                  <TableOfContents items={tableOfContents} />
-                </div>
-              )}
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4" />
+              <span className="text-white/80">{t("Published")}</span>
+              <span className="font-semibold">
+                {formatDate(pageData.lastModifiedTime)}
+              </span>
             </div>
-
-            {/* <div className="w-full sm:hidden block min-h-[82px]">
-              <div
-                className={`sm:hidden block w-full ${
-                  isTOCFixed
-                    ? "fixed top-[58px] left-0 right-0 z-50 "
-                    : "z-[200] relative"
-                } ${isTOCOpen ? "bg-white" : ""}`}
-              >
-                <Button
-                  className="sm:hidden bg-[#0B3D91] ml-4 mb-4 text-white px-4 py-2 rounded-lg"
-                  onClick={() => setIsTOCOpen(!isTOCOpen)}
-                >
-                  {isTOCOpen ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
-                </Button>
-
-                <div
-                  className={`flex flex-col gap-6 transition-all max-h-[80vh] overflow-y-auto duration-300 overflow-hidden ${
-                    isTOCOpen ? "h-[1500px] opacity-100" : "h-0 opacity-0"
-                  }`}
-                >
-                  {tableOfContents.length > 0 && (
-                    <div className="flex flex-col justify-center gap-4 px-4">
-                      <h2 className="sm:text-sm font-normal uppercase text-[#999999]">
-                        Table of contents
-                      </h2>
-                      <TableOfContents items={tableOfContents} />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div> */}
-
-            <div className="flex flex-col gap-16 sm:max-w-[888px]">
-              <img
-                src={pageData?.featureImageUrl}
-                alt=""
-                className="w-full sm:rounded-2xl object-cover"
-              />
-              <NormalContent
-                content={normalContent ?? ""}
-                tableOfContents={tableOfContents}
-              />
-              {(pageData?.event || pageData?.training) && (
-                <Link
-                  href={`${
-                    pageData.event
-                      ? `/events/${pageData?.event?.id}`
-                      : `/training/${pageData?.training?.id}`
-                  }`}
-                  className="mt-auto bg-gray-900 text-white rounded-full px-6 py-3 font-semibold self-start hover:bg-gray-800 transition-all text-sm shadow-md hover:shadow-lg transform hover:scale-105 inline-flex items-center gap-2 group"
-                >
-                  {t("REGISTER NOW")}
-                  <svg
-                    className="w-4 h-4 transition-transform group-hover:translate-x-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </Link>
-              )}
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-4 h-4" />
+              <span className="font-semibold">
+                {comments.length} {t("comments")}
+              </span>
             </div>
           </div>
         </div>
       </div>
-      <div className="bg-[#F9F9FB]">
-        <div className="max-w-[1240px] mx-auto flex flex-col md:flex-row">
-          {dataRelatedPost && dataRelatedPost.length > 0 && (
-            <div className="mx-auto w-full sm:w-auto flex flex-col justify-center gap-10 py-8 px-4 container ">
-              <h2 className="text-5xl leading-[56px] font-semibold">
-                Related Posts
-              </h2>
-              <div className="grid sm:grid-cols-3 gap-6 sm:gap-10">
-                {dataRelatedPost
-                  .filter((item) => item.id !== pageData?.id)
-                  .slice(0, 3)
-                  .map((item, index) => (
-                    <PostItem key={index} post={item} />
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+          {/* Desktop TOC */}
+          <aside className="hidden lg:block lg:w-64 xl:w-80 flex-shrink-0">
+            <div className="sticky top-24">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-bold mb-4 text-gray-900">
+                  {t("Table of Content")}
+                </h3>
+                <nav className="space-y-2">
+                  {tableOfContents.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => scrollToSection(item.id)}
+                      className={`block w-full text-left py-2 px-3 rounded-lg transition-all text-sm ${
+                        activeSection === item.id
+                          ? "bg-blue-50 text-blue-600 font-semibold"
+                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      } ${item.level === 3 ? "pl-6" : ""}`}
+                    >
+                      {item.title}
+                    </button>
                   ))}
+                </nav>
               </div>
             </div>
-          )}
+          </aside>
+
+          {/* Mobile TOC */}
+          <button
+            onClick={() => setIsTOCOpen(!isTOCOpen)}
+            className="lg:hidden fixed bottom-6 right-6 z-30 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all"
+          >
+            {isTOCOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
+
+          <AnimatePresence>
+            {isTOCOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="lg:hidden fixed inset-0 bg-black/50 z-20"
+                onClick={() => setIsTOCOpen(false)}
+              >
+                <motion.div
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 max-h-[70vh] overflow-y-auto"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <h3 className="text-lg font-bold mb-4 text-gray-900">
+                    {t("tableOfContents") || "Mục lục"}
+                  </h3>
+                  <nav className="space-y-2">
+                    {tableOfContents.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => scrollToSection(item.id)}
+                        className={`block w-full text-left py-3 px-4 rounded-lg transition-all ${
+                          activeSection === item.id
+                            ? "bg-blue-50 text-blue-600 font-semibold"
+                            : "text-gray-600 hover:bg-gray-50"
+                        } ${item.level === 3 ? "pl-8" : ""}`}
+                      >
+                        {item.title}
+                      </button>
+                    ))}
+                  </nav>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Article Content */}
+          <article className="flex-1 min-w-0">
+            {/* Featured Image */}
+            {pageData.featureImageUrl && (
+              <div className="mb-8 md:mb-12 -mx-4 sm:mx-0">
+                <img
+                  src={pageData.featureImageUrl}
+                  alt={pageData.title}
+                  className="w-full h-64 md:h-96 object-cover sm:rounded-2xl"
+                />
+              </div>
+            )}
+
+            {/* Content */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 lg:p-10 mb-8">
+              <div
+                className="prose prose-lg max-w-none
+                  prose-headings:font-bold prose-headings:text-gray-900
+                  prose-h2:text-2xl prose-h2:md:text-3xl prose-h2:mt-8 prose-h2:mb-4
+                  prose-h3:text-xl prose-h3:md:text-2xl prose-h3:mt-6 prose-h3:mb-3
+                  prose-p:text-gray-600 prose-p:leading-relaxed
+                  prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline"
+                dangerouslySetInnerHTML={{ __html: normalContent }}
+              />
+
+              {/* Register CTA for Event/Training */}
+              {(pageData.event || pageData.training) && (
+                <div className="mt-10 pt-8 border-t border-gray-200">
+                  <Link
+                    href={`${
+                      pageData.event
+                        ? `/events/${pageData.event.id}`
+                        : `/training/${pageData.training.id}`
+                    }`}
+                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all inline-flex items-center justify-center gap-2 group"
+                  >
+                    {t("REGISTER NOW") || "Đăng ký ngay"}
+                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            {/* Comments Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <MessageCircle className="w-6 h-6" />
+                {t("comments")} ({comments.length})
+              </h3>
+
+              {/* Comment Input */}
+              {isLoggedIn ? (
+                <div className="mb-8">
+                  <textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder={
+                      t("Share your thoughts...") ||
+                      "Chia sẻ suy nghĩ của bạn..."
+                    }
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    rows={4}
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      onClick={handlePostComment}
+                      disabled={isSubmitting || !newComment.trim()}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                    >
+                      <Send className="w-4 h-4" />
+                      {t("Post Comment") || "Đăng bình luận"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-700 text-center">
+                  {t("Please login to comment") ||
+                    "Vui lòng đăng nhập để bình luận"}
+                </div>
+              )}
+
+              {/* Comments List */}
+              <div className="space-y-6">
+                {comments.length === 0 ? (
+                  <p className="text-center text-gray-500 py-8">
+                    {t("No comments yet. Be the first to comment!") ||
+                      "Chưa có bình luận nào. Hãy là người đầu tiên bình luận!"}
+                  </p>
+                ) : (
+                  comments.map((comment) => (
+                    <motion.div
+                      key={comment.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex gap-4 p-4 bg-gray-50 rounded-xl"
+                    >
+                      <img
+                        src={
+                          comment.commenter?.userUrl ||
+                          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                            comment.commenter?.fullName || "User"
+                          )}`
+                        }
+                        alt={comment.commenter?.fullName}
+                        className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <p className="font-semibold text-gray-900">
+                              {comment.commenter?.fullName}
+                            </p>
+                            <p className="text-xs text-gray-500 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatTimeAgo(comment.commentTime || "")}
+                            </p>
+                          </div>
+                          {isCommentOwner(comment) && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditingCommentId(comment.id || "");
+                                  setEditContent(comment.content);
+                                }}
+                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleDeleteComment(comment.id || "")
+                                }
+                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        {editingCommentId === comment.id ? (
+                          <div>
+                            <textarea
+                              value={editContent}
+                              onChange={(e) => setEditContent(e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-2"
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() =>
+                                  handleEditComment(comment.id || "")
+                                }
+                                disabled={isSubmitting}
+                                className="px-4 py-1 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
+                              >
+                                {t("Save") || "Lưu"}
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setEditingCommentId(null);
+                                  setEditContent("");
+                                }}
+                                className="px-4 py-1 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors"
+                              >
+                                {t("Cancel") || "Hủy"}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                            {comment.content}
+                          </p>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </div>
