@@ -1,4 +1,4 @@
-import { Event, MediaData, MediaResponse } from "@/constant/types";
+import { Event, MediaData, MediaResponse, PointHistorySearchRequestDto, SearchDto } from "@/constant/types";
 import { HttpClient } from "@/lib/HttpClient";
 import { AxiosRequestHeaders } from "axios";
 
@@ -44,3 +44,13 @@ export const updateRequest = (type: number) => {
   const response = http.post(`${API_PREFIX_PATH}/update-request`, { type });
   return response.then((res) => res);
 };
+
+export const getMyPointHistory = async (params?: PointHistorySearchRequestDto) => {
+  const response = http.get(
+    `${API_PREFIX_PATH}/me/point-history`,
+    {
+      params,
+    }
+  );
+  return response
+} ;

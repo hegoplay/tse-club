@@ -28,13 +28,10 @@ export default function EventPage() {
     
 
   return (
-    <div className="min-h-screen pb-20 mx-auto"
-      style={{
-        maxWidth: "1440px"
-      }}
+    <div className="min-h-screen pb-20 mx-auto max-w-full md:max-w-11/12"
     >
       {/* Container chính cho bố cục 2 cột trên PC/iPad, 1 cột trên Mobile */}
-      <div className="flex flex-col-reverse md:flex-row px-4 md:px-6 gap-8">
+      <div className="flex flex-col-reverse lg:flex-row px-4 md:px-6 gap-8">
         <div className="md:flex-1 mt-8">
           {/* Content Sections */}
           {activeTab === "events" ? (
@@ -89,7 +86,7 @@ export default function EventPage() {
             </>
           )}
         </div>
-        <div className="w-full lg:w-96 md:order-2 md:sticky md:top-6 self-start">
+        <div className="w-full lg:w-96 lg:order-2 lg:sticky lg:top-6 self-start">
           <EventAndTrainingFilter
             eventSearchParams={eventSearchParams}
             setEventSearchParams={setEventSearchParams}

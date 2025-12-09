@@ -1,3 +1,4 @@
+import { Point } from "framer-motion";
 import { ChangeEvent } from "react";
 
 export enum UserRole {
@@ -24,6 +25,12 @@ export enum RangeTimeType{
   UPCOMING = "UPCOMING",
   ONGOING = "ONGOING",
   PAST = "PAST",
+}
+
+export enum PointHistoryType{
+  ATTENDANCE = "ATTENDANCE",
+  CONTRIBUTION = "CONTRIBUTION",
+  ALL = "ALL",
 }
 
 export interface Book {
@@ -606,8 +613,16 @@ export interface UserShortInfoResponseDto {
   disabled: boolean;
   type: number;
 }
-export interface PageWrapperDto {
-    _embedded: any;
+
+export interface PointHistoryResponseDto{
+  id: string;
+  point: number;
+  pointType: PointHistoryType;
+  resetTime: string;
+}
+
+export interface PageWrapperDto<T = any> {
+    _embedded: T;
     _links: {
         self: {
             href: string;
@@ -658,3 +673,6 @@ export interface TrainingSearchRequestDto extends SearchDto {
   rangeTimeType?: RangeTimeType;
 }
 
+export interface PointHistorySearchRequestDto extends SearchDto {
+  pointHistoryType: PointHistoryType;
+}
