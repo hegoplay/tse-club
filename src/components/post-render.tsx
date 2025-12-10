@@ -22,12 +22,12 @@ import {
 } from "@/modules/services/postService";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Comment, Member } from "@/constant/types";
+import { Comment, Member, PostDetailDto } from "@/constant/types";
 import { Modal, Popconfirm } from "antd";
 import LatestPost from "./LatestPost";
 
 interface PostRenderProps {
-  pageData: any;
+  pageData?: PostDetailDto;
 }
 
 const extractTableOfContents = (content: string) => {
@@ -74,6 +74,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
       }
     }
     console.log("comments", pageData?.comments);
+    console.log("pageData", pageData);
   }, []);
 
   useEffect(() => {
@@ -146,7 +147,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
 
     setIsSubmitting(true);
     try {
-      const comment = await createComment(pageData.id, newComment);
+      const comment = await createComment(pageData?.id || "", newComment);
       setComments([comment, ...comments]);
       setNewComment("");
       toast.success(
@@ -235,6 +236,57 @@ const PostRender = ({ pageData }: PostRenderProps) => {
     );
   }
 
+  // Xác định hình ảnh nền: sử dụng featureImageUrl nếu có, ngược lại dùng gradient mặc định
+  const heroBackgroundStyle = pageData.featureImageUrl
+    ? {
+        backgroundImage: `url(${pageData.featureImageUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }
+    : {};
+
+  const renderEventInfo = () => {
+    if (!pageData.event) return null;
+    return (
+      <div className="flex flex-col md:flex-row md:flex-wrap mt-10 pt-8 border-t border-gray-200 md:items-center">
+        {/* 1. KHỐI THÔNG TIN - chiếm phần lớn không gian */}
+        <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 
+                        gap-y-3 
+                        rounded-xl p-3
+          ">
+          {" "}
+          {/* Đổi grid-cols-2 thành sm:grid-cols-2 để bố cục 2 cột sớm hơn (mobile ngang) */}
+          <p>
+            {t("Event")}: {pageData.event.title}
+          </p>
+          <p>
+            {t("Attendees")}: {pageData.event.currentRegistered}/
+            {pageData.event.limitRegister}
+          </p>
+          <p>
+            {t("Start Time")}: {formatDate(pageData.event.location.startTime)}
+          </p>
+          
+          <p>
+            {t("End Time")}: {formatDate(pageData.event.location.endTime)}
+          </p>
+        </div>
+
+        {/* 2. KHỐI NÚT ĐĂNG KÝ - Đảm bảo nằm bên phải trên desktop */}
+        <Link
+          href={`${pageData.event && `/events/${pageData.event.id}`}`}
+          className="w-full sm:w-auto mt-6 md:mt-0 md:ml-8 flex-shrink-0 
+                       bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 
+                       rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 
+                       transition-all inline-flex items-center justify-center gap-2 group"
+        >
+          {t("More information") || "Đăng ký ngay"}
+          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Progress Bar */}
@@ -245,22 +297,33 @@ const PostRender = ({ pageData }: PostRenderProps) => {
         />
       </div>
 
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-blue-600 to-purple-700 text-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 md:pt-28 md:pb-16">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+      {/* Hero Section với hình nền và lớp phủ tối */}
+      <div
+        className={`relative ${
+          !pageData.featureImageUrl &&
+          "bg-gradient-to-br from-blue-600 to-purple-700"
+        } text-white`}
+        style={heroBackgroundStyle}
+      >
+        {/* Lớp phủ tối để làm nổi bật chữ */}
+        {pageData.featureImageUrl && (
+          <div className="absolute inset-0 bg-black/50 z-0 blur-2xl"></div>
+        )}
+
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 md:pt-28 md:pb-16">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6 drop-shadow-lg">
             {pageData.title}
           </h1>
 
           <div className="flex flex-wrap gap-6 text-sm md:text-base">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4" />
-              <span className="text-white/80">{t("Written by")}</span>
+              <span className="text-white/90">{t("Written by")}</span>
               <span className="font-semibold">{pageData.writer?.fullName}</span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              <span className="text-white/80">{t("Published")}</span>
+              <span className="text-white/90">{t("Published")}</span>
               <span className="font-semibold">
                 {formatDate(pageData.lastModifiedTime)}
               </span>
@@ -274,48 +337,10 @@ const PostRender = ({ pageData }: PostRenderProps) => {
           </div>
         </div>
       </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <p className="mb-2 ml-4">{`→ ${t("Post Content")}`}</p>
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-          {/* Desktop TOC */}
-          <aside className="hidden lg:block lg:w-64 xl:w-80 flex-shrink-0">
-            <div className="sticky top-24">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold mb-4 text-gray-900">
-                  {t("Table of Content")}
-                </h3>
-                <nav className="space-y-2">
-                  {tableOfContents.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => scrollToSection(item.id)}
-                      className={`block w-full text-left py-2 px-3 rounded-lg transition-all text-sm ${
-                        activeSection === item.id
-                          ? "bg-blue-50 text-blue-600 font-semibold"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                      } ${item.level === 3 ? "pl-6" : ""}`}
-                    >
-                      {item.title}
-                    </button>
-                  ))}
-                </nav>
-              </div>
-            </div>
-          </aside>
-
-          {/* Mobile TOC */}
-          <button
-            onClick={() => setIsTOCOpen(!isTOCOpen)}
-            className="lg:hidden fixed bottom-6 right-6 z-30 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all"
-          >
-            {isTOCOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
-
           <AnimatePresence>
             {isTOCOpen && (
               <motion.div
@@ -357,16 +382,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
 
           {/* Article Content */}
           <article className="flex-1 min-w-0">
-            {/* Featured Image */}
-            {pageData.featureImageUrl && (
-              <div className="mb-8 md:mb-12 -mx-4 sm:mx-0">
-                <img
-                  src={pageData.featureImageUrl}
-                  alt={pageData.title}
-                  className="w-full h-64 md:h-96 object-cover sm:rounded-2xl"
-                />
-              </div>
-            )}
+            {/* Xóa Featured Image ở đây vì đã đưa lên Hero Section */}
 
             {/* Content */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 lg:p-10 mb-8">
@@ -380,22 +396,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
                 dangerouslySetInnerHTML={{ __html: normalContent }}
               />
 
-              {/* Register CTA for Event/Training */}
-              {(pageData.event || pageData.training) && (
-                <div className="mt-10 pt-8 border-t border-gray-200">
-                  <Link
-                    href={`${
-                      pageData.event
-                        ? `/events/${pageData.event.id}`
-                        : `/training/${pageData.training.id}`
-                    }`}
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all inline-flex items-center justify-center gap-2 group"
-                  >
-                    {t("REGISTER NOW") || "Đăng ký ngay"}
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              )}
+              {renderEventInfo()}
             </div>
 
             {/* Comments Section */}

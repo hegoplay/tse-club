@@ -690,3 +690,22 @@ export interface TrainingSearchRequestDto extends SearchDto {
 export interface PointHistorySearchRequestDto extends SearchDto {
   pointHistoryType: PointHistoryType;
 }
+
+export interface PostWrapperDto {
+  id: string;
+  title: string;
+  writer: UserShortInfoResponseDto;
+  postTime: string;
+  featureImageUrl: string;
+  lastModifiedTime: string;
+  createdAt: string;
+  status: string;
+  deleted: boolean;
+}
+
+export interface PostDetailDto extends PostWrapperDto {
+  content: string;
+  comments: Comment[];
+  event: Event;
+  training: Training;
+}
