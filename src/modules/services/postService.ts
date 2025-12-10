@@ -1,4 +1,4 @@
-import { Post, PostListResponse, PostResponse } from "@/constant/types";
+import { Post, PostDetailDto, PostListResponse, PostResponse } from "@/constant/types";
 import { HttpClient } from "@/lib/HttpClient";
 
 const API_PREFIX_POST_PATH = "/posts";
@@ -49,7 +49,7 @@ export const getPostById = (id: string) =>
   http.get<PostResponse>(`${API_PREFIX_POST_PATH}/postdetails?id=${id}`);
 
 export const getPostPublicById = (id: string) =>
-  http.get<Post>(`${API_PREFIX_PUBLIC_POST_PATH}/${id}`);
+  http.get<PostDetailDto>(`${API_PREFIX_PUBLIC_POST_PATH}/${id}`);
 
 export const getPostBySlug = (slug: string) =>
   http.get<PostResponse>(`${API_PREFIX_POST_PATH}/postdetails?slug=${slug}`);

@@ -22,12 +22,12 @@ import {
 } from "@/modules/services/postService";
 import { toast } from "sonner";
 import Link from "next/link";
-import { Comment, Member } from "@/constant/types";
+import { Comment, Member, PostDetailDto } from "@/constant/types";
 import { Modal, Popconfirm } from "antd";
 import LatestPost from "./LatestPost";
 
 interface PostRenderProps {
-  pageData: any;
+  pageData?: PostDetailDto;
 }
 
 const extractTableOfContents = (content: string) => {
@@ -74,6 +74,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
       }
     }
     console.log("comments", pageData?.comments);
+    console.log("pageData", pageData);
   }, []);
 
   useEffect(() => {
@@ -146,7 +147,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
 
     setIsSubmitting(true);
     try {
-      const comment = await createComment(pageData.id, newComment);
+      const comment = await createComment(pageData?.id || "", newComment);
       setComments([comment, ...comments]);
       setNewComment("");
       toast.success(
@@ -239,10 +240,52 @@ const PostRender = ({ pageData }: PostRenderProps) => {
   const heroBackgroundStyle = pageData.featureImageUrl
     ? {
         backgroundImage: `url(${pageData.featureImageUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }
     : {};
+
+  const renderEventInfo = () => {
+    if (!pageData.event) return null;
+    return (
+      <div className="flex flex-col md:flex-row md:flex-wrap mt-10 pt-8 border-t border-gray-200 md:items-center">
+        {/* 1. KHỐI THÔNG TIN - chiếm phần lớn không gian */}
+        <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 
+                        gap-y-3 
+                        rounded-xl p-3
+          ">
+          {" "}
+          {/* Đổi grid-cols-2 thành sm:grid-cols-2 để bố cục 2 cột sớm hơn (mobile ngang) */}
+          <p>
+            {t("Event")}: {pageData.event.title}
+          </p>
+          <p>
+            {t("Attendees")}: {pageData.event.currentRegistered}/
+            {pageData.event.limitRegister}
+          </p>
+          <p>
+            {t("Start Time")}: {formatDate(pageData.event.location.startTime)}
+          </p>
+          
+          <p>
+            {t("End Time")}: {formatDate(pageData.event.location.endTime)}
+          </p>
+        </div>
+
+        {/* 2. KHỐI NÚT ĐĂNG KÝ - Đảm bảo nằm bên phải trên desktop */}
+        <Link
+          href={`${pageData.event && `/events/${pageData.event.id}`}`}
+          className="w-full sm:w-auto mt-6 md:mt-0 md:ml-8 flex-shrink-0 
+                       bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 
+                       rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 
+                       transition-all inline-flex items-center justify-center gap-2 group"
+        >
+          {t("More information") || "Đăng ký ngay"}
+          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -256,14 +299,15 @@ const PostRender = ({ pageData }: PostRenderProps) => {
 
       {/* Hero Section với hình nền và lớp phủ tối */}
       <div
-        className={`relative ${!pageData.featureImageUrl && 'bg-gradient-to-br from-blue-600 to-purple-700'} text-white`}
+        className={`relative ${
+          !pageData.featureImageUrl &&
+          "bg-gradient-to-br from-blue-600 to-purple-700"
+        } text-white`}
         style={heroBackgroundStyle}
       >
         {/* Lớp phủ tối để làm nổi bật chữ */}
         {pageData.featureImageUrl && (
-          <div className="absolute inset-0 bg-black/50 z-0 blur-2xl"
-            
-          ></div>
+          <div className="absolute inset-0 bg-black/50 z-0 blur-2xl"></div>
         )}
 
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-12 md:pt-28 md:pb-16">
@@ -295,9 +339,8 @@ const PostRender = ({ pageData }: PostRenderProps) => {
       </div>
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <p className="mb-2 ml-4">{`→ ${t('Post Content')}`}</p>
+        <p className="mb-2 ml-4">{`→ ${t("Post Content")}`}</p>
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-
           <AnimatePresence>
             {isTOCOpen && (
               <motion.div
@@ -340,7 +383,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
           {/* Article Content */}
           <article className="flex-1 min-w-0">
             {/* Xóa Featured Image ở đây vì đã đưa lên Hero Section */}
-            
+
             {/* Content */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 md:p-8 lg:p-10 mb-8">
               <div
@@ -353,22 +396,7 @@ const PostRender = ({ pageData }: PostRenderProps) => {
                 dangerouslySetInnerHTML={{ __html: normalContent }}
               />
 
-              {/* Register CTA for Event/Training */}
-              {(pageData.event || pageData.training) && (
-                <div className="mt-10 pt-8 border-t border-gray-200">
-                  <Link
-                    href={`${
-                      pageData.event
-                        ? `/events/${pageData.event.id}`
-                        : `/training/${pageData.training.id}`
-                    }`}
-                    className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all inline-flex items-center justify-center gap-2 group"
-                  >
-                    {t("REGISTER NOW") || "Đăng ký ngay"}
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              )}
+              {renderEventInfo()}
             </div>
 
             {/* Comments Section */}

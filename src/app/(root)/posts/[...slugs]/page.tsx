@@ -30,7 +30,7 @@ export async function generateMetadata(context: {
     openGraph: {
       title: `${post?.title}`,
       description: post?.content?.slice(0, 150),
-      images: [{ url: post?.image || "/default-image.jpg" }],
+      images: [{ url: post?.featureImageUrl || "/default-image.jpg" }],
     },
   };
 }
