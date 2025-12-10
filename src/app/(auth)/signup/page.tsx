@@ -8,19 +8,22 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Images } from "@/constant/image";
 import Image from "next/image";
+import { message } from "antd";
 
 function SignUp() {
   const { t, i18n } = useTranslation("common");
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State mới
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  
+  // 1. Thêm state để lưu lỗi validation từ backend
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    confirmPassword: "", // Trường mới
+    confirmPassword: "",
     fullName: "",
     email: "",
     studentId: "",
@@ -30,6 +33,11 @@ function SignUp() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    
+    // 2. Xóa lỗi của trường đó khi người dùng bắt đầu nhập liệu lại
+    if (validationErrors[name]) {
+      setValidationErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleLanguageChange = (lang: string) => {
@@ -40,16 +48,15 @@ function SignUp() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
+    setValidationErrors({}); // Reset lỗi trước khi submit
 
-    // 1. Xác thực mật khẩu
     if (formData.password !== formData.confirmPassword) {
-      toast.error(t("Passwords do not match"));
+      message.error(t("Passwords do not match"));
       setLoading(false);
       return;
     }
 
     try {
-      // Chuẩn bị dữ liệu gửi đi (loại bỏ confirmPassword)
       const { confirmPassword, ...dataToSubmit } = formData;
 
       const response = await fetch(
@@ -61,22 +68,46 @@ function SignUp() {
         }
       );
 
+     
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Registration failed");
+         const responseData = await response.json();
+        // 3. Xử lý lỗi từ backend
+        if (responseData.errors) {
+            // Lưu object errors vào state (ví dụ: { password: "Password must be..." })
+            setValidationErrors(responseData.errors);
+        }
+        
+        // Ném lỗi để xuống catch hiển thị thông báo chung
+        throw new Error(responseData.detail || "Registration failed");
       }
 
-      toast.success(t("Registration successful!"));
+      message.success(t("Registration successful!"));
       router.push("/signin");
     } catch (err: any) {
-      setError(err.message || "An error occurred");
-      toast.error(err.message || t("Registration failed!"));
+      // Hiển thị thông báo toast chung
+      message.error(err.message || t("Registration failed!"));
     } finally {
       setLoading(false);
     }
   };
 
   const requireAsterisk = <span className="text-red-500 ml-1">*</span>;
+
+  // Helper để hiển thị lỗi input (đỡ viết lặp lại)
+  const renderError = (fieldName: string) => {
+    return validationErrors[fieldName] ? (
+      <p className="text-red-500 text-xs mt-1 italic">
+        {t(validationErrors[fieldName])}
+      </p>
+    ) : null;
+  };
+
+  // Helper để thêm class border đỏ nếu có lỗi
+  const getInputClass = (fieldName: string) => {
+    return `w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500 ${
+      validationErrors[fieldName] ? "border-red-500 bg-red-50" : ""
+    }`;
+  };
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -147,9 +178,10 @@ function SignUp() {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={getInputClass("fullName")}
                   required
                 />
+                {renderError("fullName")}
               </div>
 
               <div className="mb-4">
@@ -161,9 +193,10 @@ function SignUp() {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={getInputClass("username")}
                   required
                 />
+                 {renderError("username")}
               </div>
 
               <div className="mb-4">
@@ -176,9 +209,10 @@ function SignUp() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={getInputClass("email")}
                   required
                 />
+                {renderError("email")}
               </div>
 
               <div className="mb-4">
@@ -189,8 +223,9 @@ function SignUp() {
                   name="studentId"
                   value={formData.studentId}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={getInputClass("studentId")}
                 />
+                {renderError("studentId")}
               </div>
 
               <div className="mb-4">
@@ -203,9 +238,10 @@ function SignUp() {
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={getInputClass("dateOfBirth")}
                   required
                 />
+                {renderError("dateOfBirth")}
               </div>
 
               <div className="mb-4 relative">
@@ -218,7 +254,7 @@ function SignUp() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={getInputClass("password")}
                   required
                 />
                 <span
@@ -231,9 +267,10 @@ function SignUp() {
                     <Eye color="gray" />
                   )}
                 </span>
+                {/* Hiển thị lỗi password tại đây */}
+                {renderError("password")}
               </div>
               
-              {/* Trường Nhập lại mật khẩu mới */}
               <div className="mb-4 relative">
                 <label className="block text-[#120e31] text-sm font-medium mb-2">
                   {t("Confirm Password")}
@@ -244,7 +281,7 @@ function SignUp() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className={getInputClass("confirmPassword")}
                   required
                 />
                 <span
@@ -258,7 +295,6 @@ function SignUp() {
                   )}
                 </span>
               </div>
-              {/* Kết thúc Trường Nhập lại mật khẩu mới */}
 
               <button
                 type="submit"

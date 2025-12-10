@@ -298,7 +298,6 @@ export default function EventRender({
     hour: "2-digit",
     minute: "2-digit",
   });
-  
 
   const endTime = new Date(location?.endTime).toLocaleString("vi-VN", {
     day: "2-digit",
@@ -318,9 +317,16 @@ export default function EventRender({
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
     if (!isSingleEvent()) {
       return (
-        <button disabled className={`${common} bg-gray-500`}>
-          {t("not available for multi events")}
-        </button>
+        <>
+          <button disabled className={`${common} bg-gray-500`}>
+            {t("not available for multi events")}
+          </button>
+          {eventData.userAsAttendee && (
+            <span className="text-green-500">
+              {t("You are already registered for this event")}
+            </span>
+          )}
+        </>
       );
     }
     if (isRegistrationClosed()) {
@@ -383,9 +389,11 @@ export default function EventRender({
         );
       case "not_allowed":
         return (
-          <button disabled className={`${common} bg-black hover:opacity-80`}>
-            {t("You are not allowed to register")}
-          </button>
+          <>
+            <button disabled className={`${common} bg-black hover:opacity-80`}>
+              {t("You are not allowed to register")}
+            </button>
+          </>
         );
       default:
         return (
@@ -593,9 +601,7 @@ export default function EventRender({
             <p className="text-2xl font-bold mb-2">{category || "Event"}</p>
             <p
               className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${mapperBgEventStatusColor()}`}
-
             >
-
               {done
                 ? t("FINISHED")
                 : afterStartTime()
@@ -727,7 +733,7 @@ export default function EventRender({
             </div>
           </div>
 
-          <div className="mt-6 flex justify-center md:justify-start">
+          <div className="mt-6 flex justify-center md:justify-start items-center gap-3">
             {renderButton()}
           </div>
         </div>

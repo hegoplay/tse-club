@@ -146,19 +146,6 @@ export default function BlogPage() {
               />
             </div>
           </div>
-
-          <div className="bg-white rounded-3xl p-6 shadow-sm">
-            <h3 className="font-bold text-lg md:text-xl mb-4">
-              {t("Categories")}
-            </h3>
-            <ul className="space-y-2 text-gray-800 font-medium text-sm md:text-base">
-              <li>{t("Code Club news")}</li>
-              <li>{t("Community Stories")}</li>
-              <li>{t("Code Club resources")}</li>
-              <li>{t("Events")}</li>
-              <li>{t("Helpful tips")}</li>
-            </ul>
-          </div>
         </motion.aside>
       </div>
     </div>

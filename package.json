@@ -14,7 +14,7 @@
     "@fortawesome/free-brands-svg-icons": "^7.0.0",
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
     "@fortawesome/react-fontawesome": "^0.2.5",
-    "antd": "^5.27.1",
+    "antd": "^6.1.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.11.0",
     "ckeditor5": "^46.0.2",
