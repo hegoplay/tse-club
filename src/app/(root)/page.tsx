@@ -204,7 +204,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      <LatestPost />
+      <div className="max-w-[1500px] mx-auto">
+        <LatestPost />
+      </div>
 
       {/* FIT IUH SECTION */}
       <motion.section
@@ -246,9 +248,14 @@ export default function HomePage() {
         </div>
       </motion.section>
 
-      <EventSection pageSize={3} seeAll={true} title={t("Upcoming events")} eventSearchParams={{
-        rangeTimeType: RangeTimeType.UPCOMING
-      }}/>
+      <EventSection
+        pageSize={3}
+        seeAll={true}
+        title={t("Upcoming events")}
+        eventSearchParams={{
+          rangeTimeType: RangeTimeType.UPCOMING,
+        }}
+      />
     </section>
   );
 }

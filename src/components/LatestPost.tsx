@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { getPosts, getPublicPost } from "@/modules/services/postService";
 import { Post } from "@/constant/types";
 import { Loader2 } from "lucide-react";
+import { Image } from "antd";
+import { useTranslation } from "react-i18next";
 
 export default function LatestPost() {
+  const { t } = useTranslation("common");
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,7 +36,7 @@ export default function LatestPost() {
   return (
     <section className="w-full px-4 py-8 text-center">
       <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-10">
-        The latest news and stories
+        {t("The latest news and stories")}
       </h2>
 
       {loading ? (
@@ -49,17 +51,14 @@ export default function LatestPost() {
               className="rounded-3xl overflow-hidden flex flex-col shadow-sm transition-transform duration-200 hover:-translate-y-1"
               style={{ backgroundColor: bgColors[i % bgColors.length] }}
             >
-              {/* Hình ảnh */}
-              {post.image && (
-                <div className="w-full h-56 relative">
-                  <Image
-                    src={post.image}
-                    alt={post.title || ""}
-                    fill
-                    className="object-cover rounded-t-3xl"
-                  />
-                </div>
-              )}
+              <div className="relative">
+                <Image
+                  src={post.featureImageUrl || "/images/default-post.webp"}
+                  alt={post.title || ""}
+                  preview={false}
+                  className="object-cover rounded-t-3xl"
+                />
+              </div>
 
               {/* Nội dung */}
               <div className="flex flex-col text-left p-6 flex-grow">
@@ -74,10 +73,10 @@ export default function LatestPost() {
                   })}
                 </p>
                 <Link
-                  href={`/posts/${post.slug}`}
+                  href={`/posts/${post.id}`}
                   className="mt-auto bg-black text-white rounded-full px-5 py-2 font-semibold self-start hover:opacity-80 transition"
                 >
-                  Read more
+                  {t("Read more")}
                 </Link>
               </div>
             </div>
@@ -91,7 +90,7 @@ export default function LatestPost() {
             href="/posts"
             className="bg-black text-white rounded-full px-8 py-3 font-bold hover:opacity-80 transition"
           >
-            See all blog posts
+            {t("View all posts")}
           </Link>
         </div>
       )}
