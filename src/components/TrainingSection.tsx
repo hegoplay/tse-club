@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Image, Spin, Table, TablePaginationConfig } from "antd";
+import { Breakpoint, Image, Spin, Table, TablePaginationConfig } from "antd";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -122,11 +122,15 @@ export default function TrainingSection({
         title: t("Title"),
         dataIndex: "title",
         key: "title",
+        render: (_: string, record: Training) => {
+          return <span className="inline-block max-w-[170px] sm:max-w-lg">{record.title}</span>;
+        }
       },
       {
         title: t("Creator"),
         dataIndex: "creator",
         key: "creator",
+        responsive: ['lg', 'xl', 'xxl'] as Breakpoint[],
         render: (_: string, record: Training) => {
           return <span>{record.creator?.fullName || t("Unknown Host")}</span>;
         },
@@ -135,6 +139,7 @@ export default function TrainingSection({
         title: t("Start Time"),
         dataIndex: "location.startTime",
         key: "startTime",
+        responsive: ['sm','md','lg', 'xl', 'xxl'] as Breakpoint[],
         render: (_: string, record: Training) => {
           const date = formatDate(record.location.startTime);
   

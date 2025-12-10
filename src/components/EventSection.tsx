@@ -8,7 +8,7 @@ import {
   PageWrapperDto,
   RangeTimeType,
 } from "@/constant/types";
-import { Spin, Table, TablePaginationConfig } from "antd";
+import { Breakpoint, Spin, Table, TablePaginationConfig } from "antd";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -64,12 +64,12 @@ export default function EventSection({
   }
 
   useEffect(() => {
-    setLoading(true); 
+    setLoading(true);
 
     const handler = setTimeout(() => {
       fetchEvents(0, pageSize);
     }, 500); // Độ trễ 500ms
-    
+
     return () => {
       clearTimeout(handler);
     };
@@ -97,16 +97,42 @@ export default function EventSection({
     );
   }
 
+  const renderAttendeesAndCategory = (record: Event) => {
+    const fontColor =
+      record.limitRegister && record.currentRegistered! >= record.limitRegister
+        ? "text-red-500 font-semibold"
+        : "text-green-500 font-semibold";
+    return (
+      <div className="flex flex-col items-center">
+        <span className={fontColor}>
+          {record.currentRegistered || 0}
+          {record.limitRegister
+            ? ` / ${record.limitRegister}`
+            : ` ${t("ENDED IN")}`}
+        </span>
+        <span>{record.category ? t(record.category) : t("N/A")}</span>
+      </div>
+    );
+  };
+
   const column = [
     {
       title: t("Title"),
       dataIndex: "title",
       key: "title",
+      render: (_: string, record: Event) => {
+        return (
+          <span className="inline-block max-w-[150px] sm:max-w-lg">
+            {record.title}
+          </span>
+        );
+      },
     },
     {
       title: t("Host"),
       dataIndex: "host",
       key: "host",
+      responsive: ["lg", "xl", "xxl"] as Breakpoint[],
       render: (_: string, record: Event) => {
         return <span>{record.host?.fullName || t("Unknown Host")}</span>;
       },
@@ -115,6 +141,7 @@ export default function EventSection({
       title: t("Start Time"),
       dataIndex: "location.startTime",
       key: "startTime",
+      responsive: ["sm", "md", "lg", "xl", "xxl"] as Breakpoint[],
       render: (_: string, record: Event) => {
         const date = formatDate(record.location.startTime);
 
@@ -129,14 +156,25 @@ export default function EventSection({
       title: t("Category"),
       dataIndex: "category",
       key: "category",
+      responsive: ["lg", "xl", "xxl"] as Breakpoint[],
       render: (_: string, record: Event) => {
         return t(record.category || "Uncategorized");
+      },
+    },
+    {
+      title: t("Attendees & Category"),
+      dataIndex: "attendeeAndCategory",
+      key: "attendeeAndCategory",
+      responsive: ["xs"] as Breakpoint[],
+      render: (_: string, record: Event) => {
+        return renderAttendeesAndCategory(record);
       },
     },
     {
       title: t("Attendees"),
       dataIndex: "attendeeInfo",
       key: "attendeeInfo",
+      responsive: ["sm", "md", "lg", "xl", "xxl"] as Breakpoint[],
       render: (_: string, record: Event) => {
         const fontColor =
           record.limitRegister &&

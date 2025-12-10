@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Card,
   Avatar,
@@ -21,6 +22,9 @@ import {
   StarOutlined,
   EnvironmentOutlined,
   ClockCircleOutlined,
+  MailOutlined,
+  IdcardOutlined,
+  FileOutlined,
 } from "@ant-design/icons";
 import {
   getInfoUser,
@@ -33,6 +37,10 @@ import { Event } from "@/constant/types";
 import { formatDate } from "@/lib/utils";
 import { CopyIcon } from "lucide-react";
 import { toast } from "sonner";
+import UserInfoItem from "@/components/profiles/UserInfoItem";
+import UserInfoCard from "@/components/profiles/UserInfoCard";
+import PointHistoryCard from "@/components/profiles/PointHistoryCard";
+import SelfUserUpdateRequestModal from "@/components/profiles/SelfUserUpdateRequestModal";
 
 export default function ProfilePage() {
   const { t } = useTranslation("common");
@@ -40,6 +48,8 @@ export default function ProfilePage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isRequestUpdateModalOpen, setIsRequestUpdateModalOpen] =
+    useState(false);
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
 
@@ -99,21 +109,24 @@ export default function ProfilePage() {
         className="text-sm px-3 py-1"
       />
     );
-  }
+  };
 
   const generateUserTypeBadge = (type: number) => {
     const keys = ["student", "member", "teacher", "admin"];
-    const values = ["Sinh viên", "Thành viên CLB", "Giảng viên", "Quản trị viên"];
+    const values = [
+      "Sinh viên",
+      "Thành viên CLB",
+      "Giảng viên",
+      "Quản trị viên",
+    ];
     let badges = [];
     for (let i = 0; i < keys.length; i++) {
       if ((type & (1 << i)) === 0) continue;
-        console.log("value: ",values[i]);
-        badges.push(getBadge(keys[i], values[i]));
+      console.log("value: ", values[i]);
+      badges.push(getBadge(keys[i], values[i]));
     }
-    return <>
-      {badges.map((badge) => badge)}
-    </>
-  }
+    return <>{badges.map((badge) => badge)}</>;
+  };
 
   const columns = [
     {
@@ -157,7 +170,12 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 shadow-2xl"
+        >
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="relative">
               <Avatar
@@ -199,7 +217,17 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
+              <Button
+                type="primary"
+                size="large"
+                icon={<FileOutlined />}
+                onClick={() => setIsRequestUpdateModalOpen(true)}
+                className="bg-white text-blue-600 hover:bg-blue-50 border-0 shadow-lg"
+                style={{ color: "#fff" }}
+              >
+                {t("Request Update Info")}
+              </Button>
               <Button
                 type="primary"
                 size="large"
@@ -220,7 +248,7 @@ export default function ProfilePage() {
               </Button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Info Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -237,33 +265,25 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 hover:bg-gray-50 px-2 rounded-lg transition-colors">
-                  <span className="text-gray-600">{t("Full Name")}</span>
-                  <span className="font-medium text-gray-800 text-sm">
-                    {userInfo?.fullName || "—"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 hover:bg-gray-50 px-2 rounded-lg transition-colors">
-                  <span className="text-gray-600">{t("Email")}</span>
-                  <span className="font-medium text-gray-800 text-sm">
-                    {userInfo?.email}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 hover:bg-gray-50 px-2 rounded-lg transition-colors">
-                  <span className="text-gray-600">Nickname</span>
-                  <span className="font-medium text-gray-800">
-                    {userInfo?.nickname || "—"}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 hover:bg-gray-50 px-2 rounded-lg transition-colors">
-                  <span className="text-gray-600 flex items-center gap-2">
-                    <CalendarOutlined /> {t("Date of birth")}
-                  </span>
-                  <span className="font-medium text-gray-800">
-                    {formatDate(userInfo?.dateOfBirth || "")?.formattedDate ||
-                      "—"}
-                  </span>
-                </div>
+                <UserInfoItem label={t("Full Name")} icon={<UserOutlined />}>
+                  {userInfo?.fullName || "—"}
+                </UserInfoItem>
+                <UserInfoItem label={t("Email")} icon={<MailOutlined />}>
+                  {userInfo?.email || "—"}
+                </UserInfoItem>
+                <UserInfoItem label={t("Student ID")} icon={<IdcardOutlined />}>
+                  {userInfo?.studentId || "—"}
+                </UserInfoItem>
+                <UserInfoItem label={t("Nickname")} icon={<UserOutlined />}>
+                  {userInfo?.nickname || "—"}
+                </UserInfoItem>
+                <UserInfoItem
+                  label={t("Date of birth")}
+                  icon={<CalendarOutlined />}
+                >
+                  {formatDate(userInfo?.dateOfBirth || "")?.formattedDate ||
+                    "—"}
+                </UserInfoItem>
               </div>
             </div>
           </Card>
@@ -311,23 +331,21 @@ export default function ProfilePage() {
         </div>
 
         {/* Events Table Card */}
-        <Card className="rounded-2xl shadow-lg border-0">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-              <CalendarOutlined className="text-indigo-600 text-lg" />
-            </div>
-            <h3 className="font-bold text-xl text-gray-800">
-              {t("SỰ KIỆN ĐÃ THAM GIA")}
-            </h3>
-          </div>
+        <div className="flex flex-col gap-6">
+          <UserInfoCard
+            icon={<CalendarOutlined className="text-indigo-600 text-lg" />}
+            title={t("Joined Events")}
+          >
+            <Table
+              columns={columns}
+              dataSource={events}
+              rowKey="id"
+              pagination={{ pageSize: 5, showSizeChanger: false }}
+            />
+          </UserInfoCard>
 
-          <Table
-            columns={columns}
-            dataSource={events}
-            rowKey="id"
-            pagination={{ pageSize: 5, showSizeChanger: false }}
-          />
-        </Card>
+          <PointHistoryCard userId={userInfo?.id || ""} />
+        </div>
 
         {/* Edit Info Modal */}
         <Modal
@@ -367,9 +385,15 @@ export default function ProfilePage() {
             </Form.Item>
             <Form.Item
               name="dateOfBirth"
-              label={<span className="font-medium">Ngày sinh</span>}
+              label={<span className="font-medium">{t("Date of birth")}</span>}
             >
               <Input type="date" size="large" />
+            </Form.Item>
+            <Form.Item
+              name="studentId"
+              label={<span className="font-medium">Mã sinh viên</span>}
+            >
+              <Input size="large" />
             </Form.Item>
           </Form>
         </Modal>
@@ -436,6 +460,11 @@ export default function ProfilePage() {
             </Form.Item>
           </Form>
         </Modal>
+        <SelfUserUpdateRequestModal
+          isOpen={isRequestUpdateModalOpen}
+          onClose={() => setIsRequestUpdateModalOpen(false)}
+          userInfo={userInfo}
+        />
       </div>
     </div>
   );

@@ -353,6 +353,17 @@
   "SIMPLE": "Đơn giản",
   "ALL": "Tất cả",
   "View Details": "Xem chi tiết",
+  "Reset Time": "Thời gian đặt lại",
+  "Point Type": "Loại điểm",
+  "Points": "Điểm",
+  "ATTENDANCE": "Điểm tích cực",
+  "CONTRIBUTION": "Điểm đóng góp",
+  "Point History": "Lịch sử điểm",
+  "Joined Events": "Sự kiện đã tham gia",
+  "Request Update Info": "Yêu cầu cập nhật thông tin",
+  "User types": "Loại người dùng",
+  "Select user types": "Chọn loại người dùng",
+  "Request Time": "Thời gian yêu cầu",
   "Failed to post comment": "Đăng bình luận thất bại",
   "Comment posted successfully": "Đăng bình luận thành công",
   "Failed to update comment": "Cập nhật bình luận thất bại",
@@ -369,4 +380,4 @@
   "View all posts": "Xem tất cả bài viết",
   "The latest news and stories": "Tin tức và câu chuyện mới nhất"
 
-}
+
