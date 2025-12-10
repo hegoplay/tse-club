@@ -13,12 +13,14 @@ function SignUp() {
   const { t, i18n } = useTranslation("common");
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State mới
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
     username: "",
     password: "",
+    confirmPassword: "", // Trường mới
     fullName: "",
     email: "",
     studentId: "",
@@ -38,19 +40,31 @@ function SignUp() {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    setError("");
+
+    // 1. Xác thực mật khẩu
+    if (formData.password !== formData.confirmPassword) {
+      toast.error(t("Passwords do not match"));
+      setLoading(false);
+      return;
+    }
 
     try {
+      // Chuẩn bị dữ liệu gửi đi (loại bỏ confirmPassword)
+      const { confirmPassword, ...dataToSubmit } = formData;
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(dataToSubmit),
         }
       );
 
-      if (!response.ok) throw new Error("Registration failed");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Registration failed");
+      }
 
       toast.success(t("Registration successful!"));
       router.push("/signin");
@@ -61,6 +75,8 @@ function SignUp() {
       setLoading(false);
     }
   };
+
+  const requireAsterisk = <span className="text-red-500 ml-1">*</span>;
 
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -74,8 +90,7 @@ function SignUp() {
         />
 
         <div className="flex w-[1000px] gap-10">
-          {/* Left section with logo and info */}
-          <div className="md:flex flex-col absolute md:relative opacity-20 md:opacity-100 justify-center text-[#120e31]  px-12 max-w-xl">
+          <div className="md:flex flex-col absolute md:relative opacity-20 md:opacity-100 justify-center text-[#120e31] px-12 max-w-xl">
             <Image
               src={Images.logoTSE.src}
               alt="Logo"
@@ -94,9 +109,7 @@ function SignUp() {
             </div>
           </div>
 
-          {/* Sign up box */}
-          <div className="relative z-10 w-full bg-white max-w-md rounded-xl shadow-2xl p-8 mx-auto  backdrop-blur">
-            {/* Language switcher */}
+          <div className="relative z-10 w-full bg-white max-w-md rounded-xl shadow-2xl p-8 mx-auto backdrop-blur">
             <div className="flex justify-end mb-4 space-x-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -120,7 +133,6 @@ function SignUp() {
               </label>
             </div>
 
-            {/* Title with gradient text */}
             <h2 className="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
               {t("SIGN UP")}
             </h2>
@@ -129,6 +141,7 @@ function SignUp() {
               <div className="mb-4">
                 <label className="block text-[#120e31] text-sm font-medium mb-2">
                   {t("Full Name")}
+                  {requireAsterisk}
                 </label>
                 <input
                   name="fullName"
@@ -142,6 +155,7 @@ function SignUp() {
               <div className="mb-4">
                 <label className="block text-[#120e31] text-sm font-medium mb-2">
                   {t("Username")}
+                  {requireAsterisk}
                 </label>
                 <input
                   name="username"
@@ -155,6 +169,7 @@ function SignUp() {
               <div className="mb-4">
                 <label className="block text-[#120e31] text-sm font-medium mb-2">
                   {t("Email")}
+                  {requireAsterisk}
                 </label>
                 <input
                   type="email"
@@ -175,13 +190,13 @@ function SignUp() {
                   value={formData.studentId}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  required
                 />
               </div>
 
               <div className="mb-4">
                 <label className="block text-[#120e31] text-sm font-medium mb-2">
                   {t("Date of Birth")}
+                  {requireAsterisk}
                 </label>
                 <input
                   type="date"
@@ -196,6 +211,7 @@ function SignUp() {
               <div className="mb-4 relative">
                 <label className="block text-[#120e31] text-sm font-medium mb-2">
                   {t("Password")}
+                  {requireAsterisk}
                 </label>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -216,6 +232,33 @@ function SignUp() {
                   )}
                 </span>
               </div>
+              
+              {/* Trường Nhập lại mật khẩu mới */}
+              <div className="mb-4 relative">
+                <label className="block text-[#120e31] text-sm font-medium mb-2">
+                  {t("Confirm Password")}
+                  {requireAsterisk}
+                </label>
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border rounded-md text-black focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+                <span
+                  className="absolute inset-y-0 right-0 top-8 flex items-center pr-3 cursor-pointer"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff color="gray" />
+                  ) : (
+                    <Eye color="gray" />
+                  )}
+                </span>
+              </div>
+              {/* Kết thúc Trường Nhập lại mật khẩu mới */}
 
               <button
                 type="submit"

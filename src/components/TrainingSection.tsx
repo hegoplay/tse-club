@@ -122,6 +122,9 @@ export default function TrainingSection({
         title: t("Title"),
         dataIndex: "title",
         key: "title",
+        render: (_: string, record: Training) => {
+          return <span className="inline-block max-w-[170px] sm:max-w-lg">{record.title}</span>;
+        }
       },
       {
         title: t("Creator"),

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Card,
   Avatar,
@@ -23,6 +24,7 @@ import {
   ClockCircleOutlined,
   MailOutlined,
   IdcardOutlined,
+  FileOutlined,
 } from "@ant-design/icons";
 import {
   getInfoUser,
@@ -38,6 +40,7 @@ import { toast } from "sonner";
 import UserInfoItem from "@/components/profiles/UserInfoItem";
 import UserInfoCard from "@/components/profiles/UserInfoCard";
 import PointHistoryCard from "@/components/profiles/PointHistoryCard";
+import SelfUserUpdateRequestModal from "@/components/profiles/SelfUserUpdateRequestModal";
 
 export default function ProfilePage() {
   const { t } = useTranslation("common");
@@ -45,6 +48,8 @@ export default function ProfilePage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isRequestUpdateModalOpen, setIsRequestUpdateModalOpen] =
+    useState(false);
   const [form] = Form.useForm();
   const [passwordForm] = Form.useForm();
 
@@ -165,7 +170,12 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl p-8 shadow-2xl"
+        >
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="relative">
               <Avatar
@@ -207,7 +217,17 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-col gap-3">
+              <Button
+                type="primary"
+                size="large"
+                icon={<FileOutlined />}
+                onClick={() => setIsRequestUpdateModalOpen(true)}
+                className="bg-white text-blue-600 hover:bg-blue-50 border-0 shadow-lg"
+                style={{ color: "#fff" }}
+              >
+                {t("Request Update Info")}
+              </Button>
               <Button
                 type="primary"
                 size="large"
@@ -228,7 +248,7 @@ export default function ProfilePage() {
               </Button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Info Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -314,7 +334,7 @@ export default function ProfilePage() {
         <div className="flex flex-col gap-6">
           <UserInfoCard
             icon={<CalendarOutlined className="text-indigo-600 text-lg" />}
-            title={t("SỰ KIỆN ĐÃ THAM GIA")}
+            title={t("Joined Events")}
           >
             <Table
               columns={columns}
@@ -440,6 +460,11 @@ export default function ProfilePage() {
             </Form.Item>
           </Form>
         </Modal>
+        <SelfUserUpdateRequestModal
+          isOpen={isRequestUpdateModalOpen}
+          onClose={() => setIsRequestUpdateModalOpen(false)}
+          userInfo={userInfo}
+        />
       </div>
     </div>
   );

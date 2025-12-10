@@ -328,6 +328,20 @@ export interface UserResponse {
   data: User;
 }
 
+export interface UserFormRequestDto {
+  email?: string;
+  type?: number;
+}
+
+export interface UserFormResponseDto {
+  id: string;
+  user: UserShortInfoResponseDto;
+  type: number;
+  email: string;
+  createdAt: string;
+  lastModifiedTime: string;
+}
+
 export interface MediaData {
   name: string;
   url: string;
