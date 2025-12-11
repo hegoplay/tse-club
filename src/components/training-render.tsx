@@ -2,7 +2,7 @@
 
 import { Card, Tag, Avatar, Button } from "antd";
 import { useTranslation } from "react-i18next";
-import { Calendar, MapPin, Users } from "lucide-react";
+import { Calendar, MapPin, UserPlus, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -10,6 +10,7 @@ import {
   getPublicTrainingById,
 } from "@/modules/services/trainingService";
 import Link from "next/link";
+import { USER_TYPE_OPTIONS, USER_TYPES } from "@/constant/data";
 
 interface TrainingRenderProps {
   trainingData?: any;
@@ -61,6 +62,7 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
       try {
         setIsRefetching(true);
         const freshData = await getPublicTrainingById(currentTrainingData.id);
+        console.log("Fresh Training Data:", freshData);
         if (freshData) {
           console.log(freshData);
           setTrainingData(freshData);
@@ -81,6 +83,10 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
       setUserStatus("guest");
       return;
     }
+    const userJson = JSON.parse(user);
+
+    console.log("currentTrainingData:", currentTrainingData);
+    console.log("userJson:", userJson);
 
     const fetchStatus = async () => {
       try {
@@ -90,7 +96,12 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
         else if (userAttendeeStatus === "REGISTERED")
           setUserStatus("registered");
         else if (userAttendeeStatus === "PENDING") setUserStatus("pending");
-        else setUserStatus("none");
+        else if (
+          !currentTrainingData.isPublic &&
+          (currentTrainingData.allowedType & userJson.type) === 0
+        ) {
+          setUserStatus("not-allowed");
+        } else setUserStatus("none");
       } catch (err) {
         console.error("Error checking user event status:", err);
       }
@@ -128,6 +139,13 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
   const renderButton = () => {
     const common =
       "font-semibold rounded-full px-6 py-3 transition-all text-white";
+    if (new Date(currentTrainingData.location.endTime) < new Date()) {
+      return (
+        <button disabled className={`${common} bg-gray-400 cursor-not-allowed`}>
+          {t("TRAINING ENDED")}
+        </button>
+      );
+    }
     if (currentTrainingData.registered) {
       return (
         <button
@@ -167,6 +185,15 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
             {t("LOGIN TO JOIN")}
           </button>
         );
+      case "not-allowed":
+        return (
+          <button
+            disabled
+            className={`${common} bg-red-500 cursor-not-allowed`}
+          >
+            {t("NOT ALLOWED TO JOIN")}
+          </button>
+        );
       default:
         return (
           <button
@@ -179,6 +206,22 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
         );
     }
   };
+
+  const trainingUserTypes = useMemo(() => {
+    if (currentTrainingData.isPublic) {
+      return t("All Users");
+    }
+    const types: string[] = [];
+    for (const userTypeOption in USER_TYPE_OPTIONS) {
+      if (
+        currentTrainingData.allowedType &
+        USER_TYPE_OPTIONS[userTypeOption].value
+      ) {
+        types.push(t(USER_TYPE_OPTIONS[userTypeOption].label));
+      }
+    }
+    return types.join(", ");
+  }, [currentTrainingData.isPublic, currentTrainingData.allowedType, t]);
 
   return (
     <div className="min-h-screen bg-[#f4faf4] py-12 px-4 md:px-8 lg:px-12">
@@ -213,6 +256,12 @@ export default function TrainingRender({ trainingData }: TrainingRenderProps) {
                   <p>
                     {t("End")}:{" "}
                     {new Date(location?.endTime).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <UserPlus className="w-5 h-5 text-blue-600" />
+                  <p>
+                    {t("User Type")}: {trainingUserTypes}
                   </p>
                 </div>
               </div>
