@@ -54,9 +54,6 @@ export default function TrainingSection({
   const fetchTraining = async (page: number, size: number) => {
       setLoading(true);
       try {
-        const customedSearchValues = trainingSearchParams.searchValues?.map((value) =>
-          "*" + value.trim() + "*"
-        );
         const data: PageWrapperDto = await getPublicTraining({
           // Gửi thông tin phân trang lên API
           page: page,
@@ -67,7 +64,7 @@ export default function TrainingSection({
           startTime: trainingSearchParams.startTime,
           endTime: trainingSearchParams.endTime,
           searchs: trainingSearchParams.searchs,
-          searchValues: customedSearchValues,
+          searchValues: trainingSearchParams.searchValues,
         });
   
         setTrainings(data._embedded ? data._embedded.trainingWrapperDtoList : []); // Cập nhật dữ liệu đào tạo

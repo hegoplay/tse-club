@@ -42,13 +42,14 @@ export default function EventSection({
         // Gửi thông tin phân trang lên API
         page: page,
         size: size,
-
         rangeTimeType: eventSearchParams.rangeTimeType,
         sort: eventSearchParams.sort || "location.startTime,asc",
         keyword: eventSearchParams.keyword,
         eventType: eventSearchParams.eventType,
         startTime: eventSearchParams.startTime,
         endTime: eventSearchParams.endTime,
+        searchs: eventSearchParams.searchs,
+        searchValues: eventSearchParams.searchValues,
       });
 
       setEvents(data._embedded ? data._embedded.eventWrapperDtoList : []); // Cập nhật dữ liệu sự kiện

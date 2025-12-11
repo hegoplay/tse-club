@@ -6,7 +6,11 @@ import { Search, Filter, X, Calendar, ArrowUpDown } from "lucide-react";
 import EventSection from "@/components/EventSection";
 import TrainingSection from "@/components/TrainingSection";
 import { useTranslation } from "react-i18next";
-import { EventSearchRequestDto, RangeTimeType, TrainingSearchRequestDto } from "@/constant/types";
+import {
+  EventSearchRequestDto,
+  RangeTimeType,
+  TrainingSearchRequestDto,
+} from "@/constant/types";
 import { EventAndTrainingFilter } from "@/components/events/filters/EventAndTrainingFilter";
 
 export default function EventPage() {
@@ -25,11 +29,14 @@ export default function EventPage() {
       searchValues: [""],
     });
 
-    
+  const customTrainingSearchValues =
+    trainingSearchParams.searchValues?.map(
+      (value) => "*" + value.trim() + "*"
+    ) || [];
+  const customTrainingSearchs = trainingSearchParams.searchs || [];
 
   return (
-    <div className="min-h-screen pb-20 mx-auto max-w-full md:max-w-11/12"
-    >
+    <div className="min-h-screen pb-20 mx-auto max-w-full md:max-w-11/12">
       {/* Container chính cho bố cục 2 cột trên PC/iPad, 1 cột trên Mobile */}
       <div className="flex flex-col-reverse lg:flex-row px-4 md:px-6 gap-8">
         <div className="md:flex-1 mt-8">
@@ -41,15 +48,18 @@ export default function EventPage() {
                 eventSearchParams={{
                   ...eventSearchParams,
                   rangeTimeType: RangeTimeType.ONGOING,
+                  searchs: ["deleted"],
+                  searchValues: ["false"],
                 }}
                 title={t("Ongoing events")}
-                
               />
               <EventSection
                 pageSize={9}
                 eventSearchParams={{
                   ...eventSearchParams,
                   rangeTimeType: RangeTimeType.UPCOMING,
+                  searchs: ["deleted"],
+                  searchValues: ["false"],
                 }}
                 title={t("Upcoming events")}
               />
@@ -59,29 +69,44 @@ export default function EventPage() {
                 eventSearchParams={{
                   ...eventSearchParams,
                   rangeTimeType: RangeTimeType.PAST,
+                  searchs: ["deleted"],
+                  searchValues: ["false"],
                 }}
                 title={t("Past events")}
               />
             </>
           ) : (
             <>
+              
               <TrainingSection
                 pageSize={9}
-                rangeTimeType= {RangeTimeType.UPCOMING}
-                title={t("Upcoming trainings")}
-                trainingSearchParams={trainingSearchParams}
-              />
-              <TrainingSection
-                pageSize={9}
-                rangeTimeType={RangeTimeType.ONGOING}
                 title={t("Ongoing trainings")}
-                trainingSearchParams={trainingSearchParams}
+                trainingSearchParams={{
+                  ...trainingSearchParams,
+                  rangeTimeType: RangeTimeType.ONGOING,
+                  searchs: [...customTrainingSearchs, "deleted"],
+                  searchValues: [...customTrainingSearchValues, "false"],
+                }}
               />
               <TrainingSection
                 pageSize={9}
-                rangeTimeType={RangeTimeType.PAST}
+                title={t("Upcoming trainings")}
+                trainingSearchParams={{
+                  ...trainingSearchParams,
+                  rangeTimeType: RangeTimeType.UPCOMING,
+                  searchs: [...customTrainingSearchs, "deleted"],
+                  searchValues: [...customTrainingSearchValues, "false"],
+                }}
+              />
+              <TrainingSection
+                pageSize={9}
+                trainingSearchParams={{
+                  ...trainingSearchParams,
+                  rangeTimeType: RangeTimeType.PAST,
+                  searchs: [...customTrainingSearchs, "deleted"],
+                  searchValues: [...customTrainingSearchValues, "false"],
+                }}
                 title={t("Past trainings")}
-                trainingSearchParams={trainingSearchParams}
               />
             </>
           )}
