@@ -11,6 +11,7 @@ import { HttpClient } from "@/lib/HttpClient";
 import { AxiosRequestHeaders } from "axios";
 
 const API_PREFIX_PATH = "/users";
+const API_PREFIX_AUTH_PATH = "/auth";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/api";
@@ -57,26 +58,29 @@ export const getMyPointHistory = async (
   return response;
 };
 
-export const getUpdateRequests = async (params : SearchDto) => {
+export const getUpdateRequests = async (params: SearchDto) => {
   const response = http.get(`${API_PREFIX_PATH}/search/update-requests`);
   return response;
-}
+};
 
 export const createUpdateRequest = async (data: UserFormRequestDto) => {
   const response = http.post(`${API_PREFIX_PATH}/update-requests`, data);
   return response;
-}
+};
 
 export const deleteUpdateRequest = async (id: string) => {
   const response = http.delete(`${API_PREFIX_PATH}/update-requests/${id}`);
   return response;
-}
+};
 
 export const encodeBitwiseType = (selectedValues: number[]): number => {
   return selectedValues.reduce((acc, current) => acc | current, 0);
 };
 
-export const decodeBitwiseType = (bitwiseValue?: number, types?: Record<string, number>): number[] => {
+export const decodeBitwiseType = (
+  bitwiseValue?: number,
+  types?: Record<string, number>
+): number[] => {
   if (!bitwiseValue || bitwiseValue === 0) return [];
 
   const selectedValues: number[] = [];
@@ -88,4 +92,11 @@ export const decodeBitwiseType = (bitwiseValue?: number, types?: Record<string, 
   }
 
   return selectedValues;
+};
+
+export const forgotPassword = (email: string) => {
+  const response = http.post(`${API_PREFIX_AUTH_PATH}/forget-password`, {
+    email,
+  });
+  return response.then((res) => res);
 };

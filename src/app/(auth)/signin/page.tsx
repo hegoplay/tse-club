@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { loginWithGoogle } from "@/lib/actions/auth";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Image } from "antd";
 import { Images } from "@/constant/image";
@@ -19,6 +19,8 @@ function SignIn() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const [language, setLanguage] = useState<string>("vi");
 
@@ -33,6 +35,9 @@ function SignIn() {
     setLanguage(lang);
     i18n.changeLanguage(lang);
     localStorage.setItem("language", lang);
+    const params = new URLSearchParams(searchParams);
+    params.set("lang", lang);
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -187,7 +192,7 @@ function SignIn() {
               <p>
                 {t("Didn't remember your password ?")}{" "}
                 <Link
-                  href="/forgotpassword"
+                  href="/forgot-password"
                   className="text-gray-400 hover:underline"
                 >
                   {t("Click Here")}

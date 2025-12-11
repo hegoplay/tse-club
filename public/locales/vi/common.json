@@ -379,6 +379,12 @@
   "Published": "Được đăng vào",
   "View all posts": "Xem tất cả bài viết",
   "The latest news and stories": "Tin tức và câu chuyện mới nhất",
-  "More information": "Thông tin thêm"
+  "More information": "Thông tin thêm",
+  "Enter your email address and we'll send you new password": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn mật khẩu mới",
+  "Please check your inbox for the new password.": "Vui lòng kiểm tra hộp thư đến của bạn để lấy mật khẩu mới.",
+  "Sending...": "Đang gửi...",
+  "Send New Password": "Gửi mật khẩu mới",
+  "A new password has been sent to your email address.": "Một mật khẩu mới đã được gửi đến địa chỉ email của bạn."
+
 }
 
